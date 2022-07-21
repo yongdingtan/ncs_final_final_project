@@ -1,0 +1,25 @@
+server:
+  port: 8089
+
+eureka: 
+ instance:
+  hostname: localhost
+    
+spring:
+  application:
+    name: GATEWAY-SERVER
+  cloud:
+    gateway:
+      routes:
+        - id: NCS-PROJECT-PUBLIC-SERVICE
+          uri: lb://NCS-PROJECT-PUBLIC-SERVICE
+          predicates: 
+            - Path=/public/**
+        - id: NCS-PROJECT-ADMIN-SERVICE
+          uri: lb://NCS-PROJECT-ADMIN-SERVICE
+          predicates:
+            - Path=/admin/**
+        - id: NCS-PROJECT-STUDENT-SERVICE
+          uri: lb://NCS-PROJECT-STUDENT-SERVICE
+          predicates:
+            - Path=/student/**
