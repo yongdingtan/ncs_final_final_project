@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,12 +32,9 @@ public class TokenValidatorController {
 		String userType = request.getHeader("userType");
 		String requestedTokenHeaderAuthority = request.getHeader("authority");
 
-		// String requestedTokenHeader = token;
 		String username = null;
 		String jwtToken = null;
 
-		// System.out.println("\n\n ---->> 1 orgKey "+orgKey+" requestTokenHeader
-		// "+requestedTokenHeader);
 		if (requestedTokenHeader != null && requestedTokenHeader.startsWith(orgKey)) {
 			System.out.println("\n\n  ***---->> 2 code Inside filter " + requestedTokenHeader + "\n");
 			int cutToken = orgKey.length();
@@ -49,9 +47,7 @@ public class TokenValidatorController {
 				System.out.println(" 4 username from token is :- " + username);
 
 			} catch (Exception e) {
-				System.out.println(" --->> 4.b exception inside extract usernmae " + e);
-				return false;
-				// ideally should throw Custom Exception
+				throw new UsernameNotFoundException("Username not found");
 			}
 
 			// --- code execute if no exception

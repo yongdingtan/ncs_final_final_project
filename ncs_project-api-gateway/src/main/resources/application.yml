@@ -23,3 +23,7 @@ spring:
           uri: lb://NCS-PROJECT-STUDENT-SERVICE
           predicates:
             - Path=/student/**
+        - id: NCS-PROJECT-QUESTION-SERVICE
+          uri: lb://NCS-PROJECT-QUESTION-SERVICE
+          predicates:
+            - Path=/question/**

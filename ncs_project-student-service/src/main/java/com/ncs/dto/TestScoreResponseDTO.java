@@ -5,8 +5,6 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Component;
 
-import com.ncs.model.User;
-
 @Component
 public class TestScoreResponseDTO {
 
@@ -21,8 +19,7 @@ public class TestScoreResponseDTO {
 		super();
 	}
 
-	public TestScoreResponseDTO(int testId, User user, Date date, String category, String level, int totalScore,
-			int marks) {
+	public TestScoreResponseDTO(int testId, Date date, String category, String level, int totalScore, int marks) {
 		super();
 		this.testId = testId;
 		this.date = date;

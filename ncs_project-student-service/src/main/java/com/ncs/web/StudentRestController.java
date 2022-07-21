@@ -5,13 +5,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 
 import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -39,8 +39,11 @@ import com.ncs.model.User;
 import com.ncs.service.QuestionService;
 import com.ncs.service.TestScoreService;
 import com.ncs.service.UserService;
+import com.ncs.util.JWTUtil;
 import com.ncs.util.QuestionDTOConversion;
 import com.ncs.util.TestScoreDTOConversion;
+
+import io.jsonwebtoken.Jwts;
 
 @RestController
 @RequestMapping("/student")
@@ -49,6 +52,9 @@ public class StudentRestController {
 	UserService userService;
 	TestScoreService testScoreService;
 	QuestionService questionService;
+
+	@Autowired
+	JWTUtil jwtUtil;
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -144,50 +150,66 @@ public class StudentRestController {
 	@PostMapping("/exam/answer")
 	@ResponseBody
 	public ResponseEntity<TestScoreResponseDTO> answerQuestions(@RequestHeader(name = "Authorization") String token,
-			@RequestBody ArrayList<String> answers, HttpSession session) throws Exception {
+			@RequestBody ArrayList<String> answers, @RequestParam String category, @RequestParam String level)
+			throws Exception {
 		loggerQuestion.info("Inside Answer Exam Questions API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.set("Authorization", token);
 		headers.set("userType", "student");
+
+		String user = null;
+		if (token != null) {
+			// parse the token.
+
+			try {
+				user = Jwts.parser().setSigningKey("secret").parseClaimsJws(token.replace("ncs-", "")).getBody()
+						.getSubject();
+
+			} catch (Exception e) {
+
+				throw e;
+
+			}
+		}
 
 		HttpEntity<String> header = new HttpEntity<String>(headers);
 		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
 		boolean jwtStatus = result.getBody();
 
 		if (jwtStatus) {
-			HashMap<String, List<QuestionResponseDTO>> examQuestions = (HashMap<String, List<QuestionResponseDTO>>) session
-					.getAttribute("examQuestions");
+			ResponseEntity<List<QuestionResponseDTO>> examQuestions = restTemplate
+					.exchange(
+							"http://NCS-PROJECT-QUESTION-SERVICE/question/exam/attempt" + "?category=" + category
+									+ "&level=" + level,
+							HttpMethod.GET, null, new ParameterizedTypeReference<List<QuestionResponseDTO>>() {
+							});
+			List<QuestionResponseDTO> questions = examQuestions.getBody();
 			ArrayList<String> correctAnswers = new ArrayList<>();
+
 			int totalMarks = 0;
 
-			List<QuestionResponseDTO> list = new ArrayList<>();
-			for (Entry<String, List<QuestionResponseDTO>> entry : examQuestions.entrySet()) {
-				list = entry.getValue();
-			}
-			QuestionResponseDTO DTOQuestion = list.get(0);
+			QuestionResponseDTO DTOQuestion = questions.get(0);
 
-			for (List<QuestionResponseDTO> question : examQuestions.values()) {
-				for (QuestionResponseDTO dto : question) {
-					correctAnswers.add(dto.getCorrectAnswer());
-				}
+			for (QuestionResponseDTO dto : questions) {
+				correctAnswers.add(dto.getCorrectAnswer());
 			}
+
 			for (int i = 0; i < 20; i++) {
 				if (correctAnswers.get(i).equals(answers.get(i)))
 					totalMarks++;
 			}
 
 			Date date = Date.valueOf(LocalDate.now());
-			String level = "";
+			String questionLevel = "";
 			if (DTOQuestion.getQuestionMarks() == 1)
-				level = "Basic";
+				questionLevel = "Basic";
 			else if (DTOQuestion.getQuestionMarks() == 2)
-				level = "Intermediate";
+				questionLevel = "Intermediate";
 			else if (DTOQuestion.getQuestionMarks() == 3)
-				level = "Advanced";
+				questionLevel = "Advanced";
 			int totalScore = totalMarks * 5;
 
 			Test_Score testScore = new Test_Score();
@@ -197,10 +219,8 @@ public class StudentRestController {
 			testScore.setMarks(totalScore);
 			testScore.setTotalScore(20);
 
-			User u = (User) session.getAttribute("UserData");
+			User u = userService.findUserByUsername(user);
 			userService.saveScore(u, testScore);
-
-			session.removeAttribute("examQuestions");
 
 			TestScoreResponseDTO userTestScore = TestScoreDTOConversion
 					.convertToResponse(testScoreService.createTestScore(testScore));
@@ -209,6 +229,6 @@ public class StudentRestController {
 		} else {
 			throw new Exception("Invalid Credentials");
 		}
-	}
 
+	}
 }
