@@ -19,9 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,6 +52,9 @@ public class StudentRestController {
 	QuestionService questionService;
 
 	@Autowired
+	TestScoreDTOConversion dtoConversion;
+
+	@Autowired
 	JWTUtil jwtUtil;
 
 	@Autowired
@@ -71,11 +72,30 @@ public class StudentRestController {
 		this.questionService = questionService;
 	}
 
+	public String getUsernameFromToken(String token) {
+		String username = null;
+		if (token != null) {
+			// parse the token.
+
+			try {
+				username = Jwts.parser().setSigningKey("secret").parseClaimsJws(token.replace("ncs-", "")).getBody()
+						.getSubject();
+
+			} catch (Exception e) {
+
+				throw e;
+
+			}
+		}
+
+		return username;
+	}
+
 	// Update Student
-	@PutMapping("/edit/{id}")
+	@GetMapping("/results")
 	@ResponseBody
-	public ResponseEntity<?> editUser(@RequestHeader(name = "Authorization") String token, @PathVariable int id,
-			@RequestBody User u) throws Exception {
+	public ResponseEntity<List<TestScoreResponseDTO>> getStudentResults(
+			@RequestHeader(name = "Authorization") String token) throws Exception {
 		loggerUser.info("Inside Edit User API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -85,19 +105,24 @@ public class StudentRestController {
 		headers.set("Authorization", token);
 		headers.set("userType", "student");
 
+		String username = getUsernameFromToken(token);
+
 		HttpEntity<String> header = new HttpEntity<String>(headers);
 		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
 		boolean jwtStatus = result.getBody();
 
 		if (jwtStatus) {
-			User userExists = userService.findUserById(id);
+			User userExists = userService.findUserByUsername(username);
 			if (userExists == null) {
-				throw new ResourceNotFoundException("Student with ID: " + id + " not found", "Id", id);
+				throw new ResourceNotFoundException("Student with username: " + username + " not found", "Id", 0);
 			} else {
-				userService.editUser(u);
+				List<Test_Score> allTestResults = testScoreService.readAllTestScoreByUserID(userExists.getUserId());
+				List<TestScoreResponseDTO> resultsToShow = new ArrayList<>();
+				for (int i = 0; i < allTestResults.size(); i++) {
+					resultsToShow.add(dtoConversion.convertToResponse(allTestResults.get(i)));
+				}
+				return new ResponseEntity<List<TestScoreResponseDTO>>(resultsToShow, HttpStatus.OK);
 			}
-
-			return new ResponseEntity<>("Details were updated successfully", HttpStatus.OK);
 
 		} else {
 			throw new Exception("Invalid Credentials");
@@ -108,8 +133,9 @@ public class StudentRestController {
 	// Get Exam Questions
 	@GetMapping("/exam/attempt")
 	@ResponseBody
-	public List<QuestionResponseDTO> getExamQuestions(@RequestHeader(name = "Authorization") String token,
-			@RequestParam String category, @RequestParam String level, HttpSession session) throws Exception {
+	public ResponseEntity<List<QuestionResponseDTO>> getExamQuestions(
+			@RequestHeader(name = "Authorization") String token, @RequestParam String category,
+			@RequestParam String level, HttpSession session) throws Exception {
 		loggerQuestion.info("Inside Get Exam Questions API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -138,7 +164,7 @@ public class StudentRestController {
 				examQuestions.put(category, allQuestions);
 				session.setAttribute("examQuestions", examQuestions);
 
-				return allQuestions;
+				return new ResponseEntity<List<QuestionResponseDTO>>(allQuestions, HttpStatus.OK);
 			}
 		} else {
 			throw new Exception("Invalid Credentials");
@@ -160,20 +186,7 @@ public class StudentRestController {
 		headers.set("Authorization", token);
 		headers.set("userType", "student");
 
-		String user = null;
-		if (token != null) {
-			// parse the token.
-
-			try {
-				user = Jwts.parser().setSigningKey("secret").parseClaimsJws(token.replace("ncs-", "")).getBody()
-						.getSubject();
-
-			} catch (Exception e) {
-
-				throw e;
-
-			}
-		}
+		String username = getUsernameFromToken(token);
 
 		HttpEntity<String> header = new HttpEntity<String>(headers);
 		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
@@ -219,7 +232,7 @@ public class StudentRestController {
 			testScore.setMarks(totalScore);
 			testScore.setTotalScore(20);
 
-			User u = userService.findUserByUsername(user);
+			User u = userService.findUserByUsername(username);
 			userService.saveScore(u, testScore);
 
 			TestScoreResponseDTO userTestScore = TestScoreDTOConversion
