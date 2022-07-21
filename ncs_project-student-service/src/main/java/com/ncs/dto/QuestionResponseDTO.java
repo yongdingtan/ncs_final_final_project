@@ -111,8 +111,7 @@ public class QuestionResponseDTO {
 		return "QuestionResponseDTO [questionNumber=" + questionNumber + ", questionString=" + questionString
 				+ ", questionCategory=" + questionCategory + ", questionMarks=" + questionMarks + ", questionOptionOne="
 				+ questionOptionOne + ", questionOptionTwo=" + questionOptionTwo + ", questionOptionThree="
-				+ questionOptionThree + ", questionOptionFour=" + questionOptionFour + ", correctAnswer="
-				+ correctAnswer + "]";
+				+ questionOptionThree + ", questionOptionFour=" + questionOptionFour + "]";
 	}
 
 }

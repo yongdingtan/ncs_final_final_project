@@ -18,15 +18,12 @@ import com.ncs.model.MyUserDetails;
 import com.ncs.model.Test_Score;
 import com.ncs.model.User;
 import com.ncs.repository.UserRepository;
-import com.ncs.util.BcryptGenerator;
 
 @Service
 public class UserServiceImpl implements UserService {
 
 	@Autowired
 	UserRepository userRepository;
-	@Autowired
-	BcryptGenerator bcryptGenerator;
 
 	@Override
 	public User saveUser(User u) {
@@ -95,7 +92,7 @@ public class UserServiceImpl implements UserService {
 			editedUser.setUsername(u.getUsername());
 		}
 		if (editedUser.getPassword() != null) {
-			editedUser.setPassword(bcryptGenerator.passwordEncoder(u.getPassword()));
+			editedUser.setPassword(u.getPassword());
 		}
 
 		editedUser.setDate_updated(new Timestamp(System.currentTimeMillis()));

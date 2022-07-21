@@ -124,7 +124,9 @@ public class StudentRestController {
 				throw new ResourceNotFoundException("Questions not found ", "Category", 0);
 			else {
 				List<QuestionResponseDTO> allQuestions = new ArrayList<>();
+				int count = 1;
 				for (Question question : rawQuestions) {
+					question.setQuestionNumber(count++);
 					allQuestions.add(QuestionDTOConversion.convertToResponse(question));
 				}
 				examQuestions.put(category, allQuestions);
