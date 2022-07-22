@@ -19,7 +19,7 @@ public interface UserService extends UserDetailsService {
 
 	public User findUserPassword(String password);
 
-	public List<User> getAllUsers();
+	public List<User> getAllStudents();
 
 	public List<User> getAllUsersByRole(String role);
 

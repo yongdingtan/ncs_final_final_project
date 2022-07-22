@@ -1,8 +1,11 @@
 package com.ncs.web;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.validation.Valid;
 
@@ -29,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import com.ncs.dto.QuestionResponseDTO;
+import com.ncs.dto.StudentAverageTestScoreResponseDTO;
 import com.ncs.dto.TestScoreResponseDTO;
 import com.ncs.dto.UserResponseDTO;
 import com.ncs.exception.InvalidCorrectAnswerException;
@@ -73,7 +77,7 @@ public class AdminRestController {
 	}
 
 	// Read User By UserID
-	@GetMapping("/read/{id}")
+	@GetMapping("/user/read/{id}")
 	@ResponseBody
 	public ResponseEntity<UserResponseDTO> getUserDetails(@RequestHeader(name = "Authorization") String token,
 			@PathVariable int id) throws Exception {
@@ -105,7 +109,7 @@ public class AdminRestController {
 	}
 
 	// Get all User By Roles
-	@GetMapping("/roles/{roles}")
+	@GetMapping("/user/roles/{roles}")
 	@ResponseBody
 	public ResponseEntity<List<UserResponseDTO>> getUsersByRoles(@RequestHeader(name = "Authorization") String token,
 			@PathVariable String roles) throws Exception {
@@ -140,10 +144,9 @@ public class AdminRestController {
 	}
 
 	// Update User
-	@PutMapping("/user/edit/{id}")
-	@ResponseBody
-	public ResponseEntity<?> editUser(@RequestHeader(name = "Authorization") String token, @PathVariable int id,
-			@RequestBody User u) throws Exception {
+	@PutMapping("/user/edit/{userId}")
+	public ResponseEntity<?> editUser(@RequestHeader(name = "Authorization") String token,
+			@PathVariable(required = true) int userId, @RequestBody User u) throws Exception {
 		loggerUser.info("Inside Edit User API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -158,9 +161,9 @@ public class AdminRestController {
 		boolean jwtStatus = result.getBody();
 
 		if (jwtStatus) {
-			User userExists = userService.findUserById(id);
+			User userExists = userService.findUserById(userId);
 			if (userExists == null) {
-				throw new ResourceNotFoundException("Admin with ID: " + id + " not found", "Id", id);
+				throw new ResourceNotFoundException("User with ID: " + userId + " not found", "Id", userId);
 			} else if (userExists.getRole() == "admin") {
 				throw new Exception("Admin cannot edit another admin credentials");
 			} else {
@@ -176,10 +179,10 @@ public class AdminRestController {
 	}
 
 	// Delete User
-	@PutMapping("/user/delete/{id}")
+	@DeleteMapping("/user/delete/{id}")
 	@ResponseBody
-	public ResponseEntity<?> deleteUser(@RequestHeader(name = "Authorization") String token, @PathVariable int id)
-			throws Exception {
+	public ResponseEntity<?> deleteUser(@RequestHeader(name = "Authorization") String token,
+			@PathVariable(required = true) int id) throws Exception {
 		loggerUser.info("Inside Delete User API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -222,7 +225,7 @@ public class AdminRestController {
 	@GetMapping("/testscore/{id}")
 	@ResponseBody
 	public ResponseEntity<TestScoreResponseDTO> readTestScore(@RequestHeader(name = "Authorization") String token,
-			@PathVariable int testId) throws Exception {
+			@PathVariable(required = true) int testId) throws Exception {
 		loggerTestScore.info("Inside Get Test Score API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -251,7 +254,7 @@ public class AdminRestController {
 	@GetMapping("/testscore/user/{userId}")
 	@ResponseBody
 	public List<TestScoreResponseDTO> readAllTestScoreByUserID(@RequestHeader(name = "Authorization") String token,
-			@PathVariable int userId) throws Exception {
+			@PathVariable(required = true) int userId) throws Exception {
 		loggerTestScore.info("Inside Get All Test Scores By User ID API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -283,7 +286,7 @@ public class AdminRestController {
 	@PutMapping("/testscore/edit/{id}")
 	@ResponseBody
 	public ResponseEntity<?> editTestScore(@RequestHeader(name = "Authorization") String token,
-			@PathVariable int studentId, @RequestBody Test_Score ts) throws Exception {
+			@PathVariable(required = true) int studentId, @RequestBody Test_Score ts) throws Exception {
 		loggerTestScore.info("Inside Edit Test Score API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -313,10 +316,10 @@ public class AdminRestController {
 	}
 
 	// Delete Test Score By ID
-	@DeleteMapping("/test_score/delete/{id}")
+	@DeleteMapping("/testscore/delete/{id}")
 	@ResponseBody
-	public ResponseEntity<?> deleteTestScore(@RequestHeader(name = "Authorization") String token, @PathVariable int id)
-			throws Exception {
+	public ResponseEntity<?> deleteTestScore(@RequestHeader(name = "Authorization") String token,
+			@PathVariable(required = true) int id) throws Exception {
 		loggerTestScore.info("Inside Delete Test Score API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -345,6 +348,97 @@ public class AdminRestController {
 			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
 
+	}
+
+	// Filters students by their average test score and returns a list
+	@GetMapping("/student/filter")
+	public ResponseEntity<List<StudentAverageTestScoreResponseDTO>> filterStudentsByAverageTestScore(
+			@RequestHeader(name = "Authorization") String token) {
+		loggerUser.info("Inside Filter Student GET API Call");
+
+		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set("Authorization", token);
+		headers.set("userType", "admin");
+
+		HttpEntity<String> header = new HttpEntity<String>(headers);
+		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
+		boolean jwtStatus = result.getBody();
+
+		if (jwtStatus) {
+			int count = 0;
+			int totalMarks = 0;
+			double average = 0;
+			List<User> allStudents = userService.getAllStudents();
+			List<StudentAverageTestScoreResponseDTO> responseDTO = new ArrayList<>();
+			for (User user : allStudents) {
+				for (Test_Score ts : user.getAllTestScore()) {
+					totalMarks = totalMarks + ts.getTotalScore();
+					count++;
+				}
+				if (average < count || average == 0 || count == 0)
+					average = 0;
+				else
+					average = totalMarks / count;
+				responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
+				count = 0;
+			}
+			return new ResponseEntity<List<StudentAverageTestScoreResponseDTO>>(responseDTO, HttpStatus.OK);
+
+		} else {
+
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
+		}
+	}
+
+	// Filters students by their average test score and returns a list
+	@GetMapping("/student/sort")
+	public ResponseEntity<List<UserResponseDTO>> sortStudentsByCategory(
+			@RequestHeader(name = "Authorization") String token, @RequestParam(required = true) String category) {
+		loggerUser.info("Inside Filter Student GET API Call");
+
+		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set("Authorization", token);
+		headers.set("userType", "admin");
+
+		HttpEntity<String> header = new HttpEntity<String>(headers);
+		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
+		boolean jwtStatus = result.getBody();
+
+		if (jwtStatus) {
+			List<User> allStudents = userService.getAllStudents();
+			List<UserResponseDTO> responseDTO = new ArrayList<>();
+			for (User user : allStudents) {
+				for (Test_Score ts : user.getAllTestScore()) {
+					if (ts.getCategory().equals(category)) {
+						responseDTO.add(dtoUser.convertToResponse(user));
+					}
+				}
+			}
+
+			SortedSet<UserResponseDTO> set = new TreeSet<UserResponseDTO>(new Comparator<UserResponseDTO>() {
+				public int compare(UserResponseDTO o1, UserResponseDTO o2) {
+					if (o1.equals(o2)) {
+						return 1;
+					} else
+						return 0;
+				}
+			});
+
+			set.addAll(responseDTO);
+			List<UserResponseDTO> response = new ArrayList(set);
+
+			return new ResponseEntity<List<UserResponseDTO>>(response, HttpStatus.OK);
+
+		} else {
+
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
+		}
 	}
 
 	// Create Question
@@ -390,7 +484,7 @@ public class AdminRestController {
 	@GetMapping("/question/{id}")
 	@ResponseBody
 	public ResponseEntity<QuestionResponseDTO> readQuestion(@RequestHeader(name = "Authorization") String token,
-			@PathVariable int id) throws Exception {
+			@PathVariable(required = true) int id) throws Exception {
 		loggerQuestion.info("Inside Get Question API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -421,8 +515,8 @@ public class AdminRestController {
 	// Get All Questions By Category
 	@GetMapping("/question/category")
 	@ResponseBody
-	public List<Question> getAllQuestionByCategory(@RequestHeader(name = "Authorization") String token,
-			@RequestParam String category) throws Exception {
+	public ResponseEntity<List<QuestionResponseDTO>> getAllQuestionByCategory(
+			@RequestHeader(name = "Authorization") String token, @RequestParam String category) throws Exception {
 		loggerQuestion.info("Inside Get Category API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -441,8 +535,13 @@ public class AdminRestController {
 			List<Question> listOfQuestions = questionService.getAllQuestionByCategory(category);
 			if (listOfQuestions.isEmpty())
 				throw new ResourceNotFoundException("Questions in " + category + " not found ", "Category", 0);
-			else
-				return listOfQuestions;
+			else {
+				List<QuestionResponseDTO> responseDTO = new ArrayList<>();
+				for (Question question : listOfQuestions) {
+					responseDTO.add(dtoQuestion.convertToResponse(question));
+				}
+				return new ResponseEntity<List<QuestionResponseDTO>>(responseDTO, HttpStatus.OK);
+			}
 		} else {
 			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
@@ -452,8 +551,8 @@ public class AdminRestController {
 	// Update Question By ID
 	@PutMapping("/question/edit/{id}")
 	@ResponseBody
-	public ResponseEntity<?> editQuestion(@RequestHeader(name = "Authorization") String token, @PathVariable int id,
-			@RequestBody Question q) throws Exception {
+	public ResponseEntity<?> editQuestion(@RequestHeader(name = "Authorization") String token,
+			@PathVariable(required = true) int id, @RequestBody Question q) throws Exception {
 		loggerQuestion.info("Inside Edit Question API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -486,8 +585,8 @@ public class AdminRestController {
 	// Deletes a Question By ID
 	@DeleteMapping("/question/delete/{id}")
 	@ResponseBody
-	public ResponseEntity<?> deleteQuestion(@RequestHeader(name = "Authorization") String token, @PathVariable int id)
-			throws Exception {
+	public ResponseEntity<?> deleteQuestion(@RequestHeader(name = "Authorization") String token,
+			@PathVariable(required = true) int id) throws Exception {
 		loggerQuestion.info("Inside Delete Question API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";

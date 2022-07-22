@@ -1,5 +1,6 @@
 package com.ncs.util;
 
+import com.ncs.dto.StudentAverageTestScoreResponseDTO;
 import com.ncs.dto.UserResponseDTO;
 import com.ncs.model.User;
 
@@ -26,6 +27,20 @@ public class UserDTOConversion {
 		dto.setEmail(u.getEmail());
 
 		return dto;
+	}
+
+	public static StudentAverageTestScoreResponseDTO convertToAverageTestScoreResponse(User u, int averageTestScore) {
+
+		StudentAverageTestScoreResponseDTO dto = new StudentAverageTestScoreResponseDTO();
+
+		dto.setUserId(u.getUserId());
+		dto.setUsername(u.getUsername());
+		dto.setRole(u.getRole());
+		dto.setEmail(u.getEmail());
+		dto.setAverageScore(averageTestScore);
+
+		return dto;
+
 	}
 
 }

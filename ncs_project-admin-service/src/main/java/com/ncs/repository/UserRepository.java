@@ -1,5 +1,7 @@
 package com.ncs.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -20,4 +22,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, CustomUser
 
 	@Query("from User u where u.password = :password AND u.is_available = 1")
 	public User findByPassword(String password);
+
+	@Query("from User u where u.role = 'student'")
+	public List<User> getAllStudents();
 }
