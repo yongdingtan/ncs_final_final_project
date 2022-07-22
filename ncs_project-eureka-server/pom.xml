@@ -15,7 +15,7 @@
 	<name>ncs_project-eureka-server</name>
 	<description>NCS Project Eureka Server</description>
 	<properties>
-		<java.version>18</java.version>
+		<java.version>1.8</java.version>
 		<spring-cloud.version>2021.0.3</spring-cloud.version>
 	</properties>
 	<dependencies>
