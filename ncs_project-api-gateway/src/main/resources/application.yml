@@ -27,3 +27,7 @@ spring:
           uri: lb://NCS-PROJECT-QUESTION-SERVICE
           predicates:
             - Path=/question/**
+        - id: NCS-PROJECT-RESULT-SERVICE
+          uri: lb://NCS-PROJECT-RESULT-SERVICE
+          predicates:
+            - Path=/result/**

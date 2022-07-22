@@ -1,8 +1,11 @@
 package com.ncs.util;
 
+import org.springframework.stereotype.Component;
+
 import com.ncs.dto.QuestionResponseDTO;
 import com.ncs.model.Question;
 
+@Component
 public class QuestionDTOConversion {
 
 	public static QuestionResponseDTO convertToResponse(Question q) {

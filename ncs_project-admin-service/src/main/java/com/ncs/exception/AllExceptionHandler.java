@@ -15,6 +15,16 @@ public class AllExceptionHandler {
 	}
 
 	@ExceptionHandler
+	public ResponseEntity<ExceptionTemplate> handleInvalidCredentialsTemplateData(InvalidCredentialsException e) {
+		ExceptionTemplate template = new ExceptionTemplate();
+		template.setMsg(e.getErrorMessage());
+		template.setUserInput(e.getUserInput());
+		template.setDateTime(new Timestamp(System.currentTimeMillis()));
+
+		return new ResponseEntity<ExceptionTemplate>(template, HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler
 	public ResponseEntity<ExceptionTemplate> handleInvalidUserNameTemplateData(InvalidUserNameException e) {
 		ExceptionTemplate template = new ExceptionTemplate();
 		template.setMsg(e.getErrorMessage());

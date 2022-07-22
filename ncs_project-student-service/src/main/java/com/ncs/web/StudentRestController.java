@@ -3,10 +3,8 @@ package com.ncs.web;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-
-import javax.servlet.http.HttpSession;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import com.ncs.dto.QuestionResponseDTO;
+import com.ncs.dto.StudentTestScoreResponseDTO;
 import com.ncs.dto.TestScoreResponseDTO;
+import com.ncs.exception.InvalidCredentialsException;
 import com.ncs.exception.ResourceNotFoundException;
 import com.ncs.model.Question;
 import com.ncs.model.Test_Score;
@@ -38,7 +38,6 @@ import com.ncs.service.QuestionService;
 import com.ncs.service.TestScoreService;
 import com.ncs.service.UserService;
 import com.ncs.util.JWTUtil;
-import com.ncs.util.QuestionDTOConversion;
 import com.ncs.util.TestScoreDTOConversion;
 
 import io.jsonwebtoken.Jwts;
@@ -91,9 +90,21 @@ public class StudentRestController {
 		return username;
 	}
 
-	// Update Student
+	// Generic function to convert set to list
+	public static <T> List<T> convertSetToList(Set<T> set) {
+		// create an empty list
+		List<T> list = new ArrayList<>();
+
+		// push each element in the set into the list
+		for (T t : set)
+			list.add(t);
+
+		// return the list
+		return list;
+	}
+
+	// Get all results unique to current user (Student)
 	@GetMapping("/results")
-	@ResponseBody
 	public ResponseEntity<List<TestScoreResponseDTO>> getStudentResults(
 			@RequestHeader(name = "Authorization") String token) throws Exception {
 		loggerUser.info("Inside Edit User API Call");
@@ -116,10 +127,10 @@ public class StudentRestController {
 			if (userExists == null) {
 				throw new ResourceNotFoundException("Student with username: " + username + " not found", "Id", 0);
 			} else {
-				List<Test_Score> allTestResults = testScoreService.readAllTestScoreByUserID(userExists.getUserId());
+				List<Test_Score> allTestResults = convertSetToList(userExists.getAllTestScore());
 				List<TestScoreResponseDTO> resultsToShow = new ArrayList<>();
-				for (int i = 0; i < allTestResults.size(); i++) {
-					resultsToShow.add(dtoConversion.convertToResponse(allTestResults.get(i)));
+				for (Test_Score testScore : allTestResults) {
+					resultsToShow.add(dtoConversion.convertToResponse(testScore));
 				}
 				return new ResponseEntity<List<TestScoreResponseDTO>>(resultsToShow, HttpStatus.OK);
 			}
@@ -130,54 +141,12 @@ public class StudentRestController {
 
 	}
 
-	// Get Exam Questions
-	@GetMapping("/exam/attempt")
-	@ResponseBody
-	public ResponseEntity<List<QuestionResponseDTO>> getExamQuestions(
-			@RequestHeader(name = "Authorization") String token, @RequestParam String category,
-			@RequestParam String level, HttpSession session) throws Exception {
-		loggerQuestion.info("Inside Get Exam Questions API Call");
-
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "student");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
-			HashMap<String, List<QuestionResponseDTO>> examQuestions = new HashMap<>();
-			List<Question> rawQuestions = questionService.getExamQuestions(category, level);
-			if (rawQuestions == null)
-				throw new ResourceNotFoundException("Questions not found ", "Category", 0);
-			else {
-				List<QuestionResponseDTO> allQuestions = new ArrayList<>();
-				int count = 1;
-				for (Question question : rawQuestions) {
-					question.setQuestionNumber(count++);
-					allQuestions.add(QuestionDTOConversion.convertToResponse(question));
-				}
-				examQuestions.put(category, allQuestions);
-				session.setAttribute("examQuestions", examQuestions);
-
-				return new ResponseEntity<List<QuestionResponseDTO>>(allQuestions, HttpStatus.OK);
-			}
-		} else {
-			throw new Exception("Invalid Credentials");
-		}
-
-	}
-
 	// Answer a list of questions
 	@PostMapping("/exam/answer")
 	@ResponseBody
-	public ResponseEntity<TestScoreResponseDTO> answerQuestions(@RequestHeader(name = "Authorization") String token,
-			@RequestBody ArrayList<String> answers, @RequestParam String category, @RequestParam String level)
-			throws Exception {
+	public ResponseEntity<StudentTestScoreResponseDTO> answerQuestions(
+			@RequestHeader(name = "Authorization") String token, @RequestBody ArrayList<String> answers,
+			@RequestParam String category, @RequestParam String level) throws Exception {
 		loggerQuestion.info("Inside Answer Exam Questions API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -235,12 +204,17 @@ public class StudentRestController {
 			User u = userService.findUserByUsername(username);
 			userService.saveScore(u, testScore);
 
-			TestScoreResponseDTO userTestScore = TestScoreDTOConversion
-					.convertToResponse(testScoreService.createTestScore(testScore));
+			int numberOfStudentsAboveYou = 0;
+			numberOfStudentsAboveYou = testScoreService.getStudentsAboveYou(testScore, u);
+			int numberOfStudentsBeneathYou = 0;
+			numberOfStudentsBeneathYou = testScoreService.getStudentsBeneathYou(testScore, u);
 
-			return new ResponseEntity<TestScoreResponseDTO>(userTestScore, HttpStatus.OK);
+			StudentTestScoreResponseDTO userTestScore = dtoConversion.convertToStudentResponseDTO(
+					testScoreService.createTestScore(testScore), numberOfStudentsAboveYou, numberOfStudentsBeneathYou);
+
+			return new ResponseEntity<StudentTestScoreResponseDTO>(userTestScore, HttpStatus.OK);
 		} else {
-			throw new Exception("Invalid Credentials");
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
 
 	}

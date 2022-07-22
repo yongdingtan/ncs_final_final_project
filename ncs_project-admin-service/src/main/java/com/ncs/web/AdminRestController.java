@@ -2,6 +2,7 @@ package com.ncs.web;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.validation.Valid;
 
@@ -31,6 +32,7 @@ import com.ncs.dto.QuestionResponseDTO;
 import com.ncs.dto.TestScoreResponseDTO;
 import com.ncs.dto.UserResponseDTO;
 import com.ncs.exception.InvalidCorrectAnswerException;
+import com.ncs.exception.InvalidCredentialsException;
 import com.ncs.exception.ResourceNotFoundException;
 import com.ncs.model.Question;
 import com.ncs.model.Test_Score;
@@ -49,6 +51,7 @@ public class AdminRestController {
 	UserService userService;
 	TestScoreService testScoreService;
 	QuestionService questionService;
+
 	@Autowired
 	RestTemplate restTemplate;
 
@@ -158,6 +161,8 @@ public class AdminRestController {
 			User userExists = userService.findUserById(id);
 			if (userExists == null) {
 				throw new ResourceNotFoundException("Admin with ID: " + id + " not found", "Id", id);
+			} else if (userExists.getRole() == "admin") {
+				throw new Exception("Admin cannot edit another admin credentials");
 			} else {
 				userService.editUser(u);
 			}
@@ -165,7 +170,7 @@ public class AdminRestController {
 			return new ResponseEntity<>("Details were updated successfully", HttpStatus.OK);
 
 		} else {
-			throw new Exception("Invalid Credentials");
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
 
 	}
@@ -192,24 +197,32 @@ public class AdminRestController {
 			User userExists = userService.findUserById(id);
 			if (userExists == null) {
 				throw new ResourceNotFoundException("User", "Id", id);
+			} else if (userExists.getRole() == "admin") {
+				throw new Exception("Admin cannot delete another admin");
 			} else {
-				boolean status = userService.deleteUser(id);
-				if (status)
-					return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
-				else
-					return new ResponseEntity<>("User deletion failed", HttpStatus.BAD_REQUEST);
+				Set<Test_Score> tsExists = userExists.getAllTestScore();
+				if (tsExists.isEmpty()) {
+					boolean status = userService.deleteUser(id);
+					if (status)
+						return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
+					else
+						return new ResponseEntity<>("User deletion failed", HttpStatus.BAD_REQUEST);
+				} else {
+					throw new Exception("Cannot delete student who still has test score records");
+				}
+
 			}
 		} else {
-			throw new Exception("Invalid Credentials");
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
 
 	}
 
 	// Get Test Score By ID
-	@GetMapping("/test_score/{id}")
+	@GetMapping("/testscore/{id}")
 	@ResponseBody
 	public ResponseEntity<TestScoreResponseDTO> readTestScore(@RequestHeader(name = "Authorization") String token,
-			@PathVariable int id) throws Exception {
+			@PathVariable int testId) throws Exception {
 		loggerTestScore.info("Inside Get Test Score API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -224,21 +237,21 @@ public class AdminRestController {
 		boolean jwtStatus = result.getBody();
 
 		if (jwtStatus) {
-			Test_Score ts = testScoreService.readTestScore(id);
+			Test_Score ts = testScoreService.getTestScoreByID(testId);
 			TestScoreResponseDTO testScore = dtoTestScore.convertToResponse(ts);
 			return new ResponseEntity<TestScoreResponseDTO>(testScore, HttpStatus.OK);
 
 		} else {
-			throw new Exception("Invalid Credentials");
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
 
 	}
 
 	// Get all Test Scores By User ID
-	@GetMapping("/test_score/{userId}")
+	@GetMapping("/testscore/user/{userId}")
 	@ResponseBody
 	public List<TestScoreResponseDTO> readAllTestScoreByUserID(@RequestHeader(name = "Authorization") String token,
-			@RequestParam int userId) throws Exception {
+			@PathVariable int userId) throws Exception {
 		loggerTestScore.info("Inside Get All Test Scores By User ID API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -253,24 +266,24 @@ public class AdminRestController {
 		boolean jwtStatus = result.getBody();
 
 		if (jwtStatus) {
-
-			List<Test_Score> rawTestScores = testScoreService.readAllTestScoreByUserID(userId);
+			User user = userService.findUserById(userId);
+			Set<Test_Score> rawTestScores = user.getAllTestScore();
 			List<TestScoreResponseDTO> allTestScores = new ArrayList<>();
 			for (Test_Score testScore : rawTestScores) {
 				allTestScores.add(dtoTestScore.convertToResponse(testScore));
 			}
 			return allTestScores;
 		} else {
-			throw new Exception("Invalid Credentials");
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
 
 	}
 
 	// Edit Test Score By ID
-	@PutMapping("/test_score/edit/{id}")
+	@PutMapping("/testscore/edit/{id}")
 	@ResponseBody
-	public ResponseEntity<?> editTestScore(@RequestHeader(name = "Authorization") String token, @PathVariable int id,
-			@RequestBody Test_Score ts) throws Exception {
+	public ResponseEntity<?> editTestScore(@RequestHeader(name = "Authorization") String token,
+			@PathVariable int studentId, @RequestBody Test_Score ts) throws Exception {
 		loggerTestScore.info("Inside Edit Test Score API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -285,16 +298,16 @@ public class AdminRestController {
 		boolean jwtStatus = result.getBody();
 
 		if (jwtStatus) {
-			Test_Score tsExists = testScoreService.readTestScore(id);
-			if (tsExists == null) {
-				throw new ResourceNotFoundException("Test Score with ID " + id + " not found", "Id", id);
+			Set<Test_Score> tsExists = testScoreService.readTestScore(studentId);
+			if (tsExists.isEmpty()) {
+				throw new ResourceNotFoundException("Test Score with ID " + studentId + " not found", "Id:", studentId);
 			} else {
-				testScoreService.editTestScore(ts);
+				testScoreService.editTestScore(ts, studentId);
 			}
 			return new ResponseEntity<>("Details were updated successfully", HttpStatus.OK);
 
 		} else {
-			throw new Exception("Invalid Credentials");
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
 
 	}
@@ -318,8 +331,8 @@ public class AdminRestController {
 		boolean jwtStatus = result.getBody();
 
 		if (jwtStatus) {
-			Test_Score tsExists = testScoreService.readTestScore(id);
-			if (tsExists == null) {
+			Set<Test_Score> tsExists = testScoreService.readTestScore(id);
+			if (tsExists.isEmpty()) {
 				throw new ResourceNotFoundException("Test Score with ID " + id + " not found", "Id", id);
 			} else {
 				boolean status = testScoreService.deleteTestScore(id);
@@ -329,7 +342,7 @@ public class AdminRestController {
 					return new ResponseEntity<>("Test Score deletion failed", HttpStatus.BAD_REQUEST);
 			}
 		} else {
-			throw new Exception("Invalid Credentials");
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
 
 	}
@@ -368,7 +381,7 @@ public class AdminRestController {
 				throw new InvalidCorrectAnswerException("Options does not contain correct answer", q.getCorrectAnswer(),
 						q.getQuestionNumber());
 		} else {
-			throw new Exception("Invalid Credentials");
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
 
 	}
@@ -400,7 +413,7 @@ public class AdminRestController {
 				return new ResponseEntity<QuestionResponseDTO>(questionResponse, HttpStatus.OK);
 			}
 		} else {
-			throw new Exception("Invalid Credentials");
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
 
 	}
@@ -431,7 +444,7 @@ public class AdminRestController {
 			else
 				return listOfQuestions;
 		} else {
-			throw new Exception("Invalid Credentials");
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
 
 	}
@@ -465,7 +478,7 @@ public class AdminRestController {
 			return new ResponseEntity<>("Details were updated successfully", HttpStatus.OK);
 
 		} else {
-			throw new Exception("Invalid Credentials");
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
 
 	}
@@ -500,7 +513,7 @@ public class AdminRestController {
 					return new ResponseEntity<>("Question deletion failed", HttpStatus.BAD_REQUEST);
 			}
 		} else {
-			throw new Exception("Invalid Credentials");
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
 
 	}

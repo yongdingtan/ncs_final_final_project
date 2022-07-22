@@ -75,7 +75,7 @@ public class PublicController {
 					.authenticate(new UsernamePasswordAuthenticationToken(u.getUsername(), u.getPassword()));
 
 		} catch (Exception e) {
-			throw new Exception("Bad credentials ");
+			throw new Exception("Invalid credentials");
 		}
 
 		UserDetails userDetails = userServiceImpl.loadUserByUsername(u.getUsername());

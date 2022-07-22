@@ -114,7 +114,6 @@ public class UserServiceImpl implements UserService {
 			allTestScores.add(ts);
 		}
 		editedUser.setAllTestScore(allTestScores);
-		editedUser.setDate_created(new Date(System.currentTimeMillis()));
 	}
 
 }

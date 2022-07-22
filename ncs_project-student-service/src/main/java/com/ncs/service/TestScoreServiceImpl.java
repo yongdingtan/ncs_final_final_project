@@ -3,20 +3,26 @@ package com.ncs.service;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ncs.exception.ResourceNotFoundException;
 import com.ncs.model.Test_Score;
+import com.ncs.model.User;
 import com.ncs.repository.TestScoreRepository;
+import com.ncs.repository.UserRepository;
 
 @Service
 public class TestScoreServiceImpl implements TestScoreService {
 
 	@Autowired
 	TestScoreRepository testScoreRepository;
+	@Autowired
+	UserRepository userRepository;
 
 	@Override
 	public Test_Score createTestScore(Test_Score ts) {
@@ -62,6 +68,50 @@ public class TestScoreServiceImpl implements TestScoreService {
 	@Override
 	public boolean deleteTestScore(int testScoreId) {
 		return testScoreRepository.deleteTestScore(testScoreId);
+	}
+
+	@Override
+	public int getStudentsAboveYou(Test_Score ts, User u) {
+		List<User> allUsers = userRepository.findAllStudents();
+		int count = 0;
+		List<Integer> numberOfValidTests = new ArrayList<>();
+		for (User user : allUsers) {
+			for (Test_Score testScore : user.getAllTestScore()) {
+				if (testScore.getMarks() > ts.getMarks()) {
+					numberOfValidTests.add(user.getUserId());
+				}
+			}
+		}
+
+		List<Integer> valid = numberOfValidTests.stream().distinct().collect(Collectors.toList());
+		for (Integer integer : valid) {
+			if (integer != u.getUserId())
+				count++;
+		}
+
+		return count;
+	}
+
+	@Override
+	public int getStudentsBeneathYou(Test_Score ts, User u) {
+		List<User> allUsers = userRepository.findAllStudents();
+		int count = 0;
+		List<Integer> numberOfValidTests = new ArrayList<>();
+		for (User user : allUsers) {
+			for (Test_Score testScore : user.getAllTestScore()) {
+				if (testScore.getMarks() < ts.getMarks()) {
+					numberOfValidTests.add(user.getUserId());
+				}
+			}
+		}
+
+		List<Integer> valid = numberOfValidTests.stream().distinct().collect(Collectors.toList());
+		for (Integer integer : valid) {
+			if (integer != u.getUserId())
+				count++;
+		}
+
+		return count;
 	}
 
 }

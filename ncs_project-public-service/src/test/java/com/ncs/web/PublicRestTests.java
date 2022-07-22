@@ -22,7 +22,7 @@ class PublicRestTests {
 	}
 
 	@Test
-	void createUser() {
+	void testCreateUser() {
 		PublicController controller = new PublicController(userService);
 		User user = new User(8, "test", "test", "test", "test", true, null, null, null);
 		ResponseEntity<?> response = controller.createUser(user);
@@ -32,16 +32,19 @@ class PublicRestTests {
 	}
 
 	@Test
-	void loginUser() throws Exception {
+	void testLoginUser() throws Exception {
 		PublicController controller = new PublicController(userService);
 		User user = new User(1, "test", "test", "test", "test", true, null, null, null);
 		user.setUsername("Student G");
 		user.setPassword("Password G");
-		ResponseEntity<JWTResponseDTO> response = controller.loginUser(user);
+		try {
 
-		assertEquals(
-				new ResponseEntity<>("There is already a user registered with the username provided", HttpStatus.OK),
-				response);
+			ResponseEntity<JWTResponseDTO> response = controller.loginUser(user);
+			assertEquals(new ResponseEntity<>("Invalid Credentials", HttpStatus.OK), response);
+		} catch (Exception e) {
+			String expectedMessage = "Invalid credentials";
+			assertEquals(expectedMessage, e.getMessage());
+		}
 
 	}
 

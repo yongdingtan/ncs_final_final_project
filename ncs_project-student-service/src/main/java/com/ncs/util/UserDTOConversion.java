@@ -1,8 +1,11 @@
 package com.ncs.util;
 
+import org.springframework.stereotype.Component;
+
 import com.ncs.dto.UserResponseDTO;
 import com.ncs.model.User;
 
+@Component
 public class UserDTOConversion {
 
 	public static UserResponseDTO convertToResponse(User u) {
