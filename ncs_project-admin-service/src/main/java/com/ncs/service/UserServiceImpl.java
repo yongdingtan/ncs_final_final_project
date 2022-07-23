@@ -82,17 +82,14 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void editUser(User u) {
-		int id = u.getUserId();
+	public void editUser(User userExists, User u) {
 
-		User editedUser = userRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("User with ID " + id + " not found", "Id", id));
-
-		if (editedUser.getUsername() != null) {
-			editedUser.setUsername(u.getUsername());
-		}
+		User editedUser = userRepository.findUserById(userExists.getUserId());
 		if (editedUser.getPassword() != null) {
 			editedUser.setPassword(u.getPassword());
+		}
+		if (editedUser.getEmail() != null) {
+			editedUser.setEmail(u.getEmail());
 		}
 
 		editedUser.setDate_updated(new Timestamp(System.currentTimeMillis()));

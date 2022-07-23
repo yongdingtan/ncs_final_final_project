@@ -142,7 +142,7 @@ public class AdminRestController {
 	}
 
 	// Update User
-	@PutMapping("/editmode/user/edit/{id}")
+	@PutMapping("/user/edit/{id}")
 	@ResponseBody
 	public ResponseEntity<?> editUser(@RequestHeader(name = "Authorization") String token, @PathVariable int id,
 			@RequestBody User u) throws Exception {
@@ -162,11 +162,11 @@ public class AdminRestController {
 		if (jwtStatus) {
 			User userExists = userService.findUserById(id);
 			if (userExists == null) {
-				throw new ResourceNotFoundException("Userrrr with ID: " + id + " not found", "Id", id);
+				throw new ResourceNotFoundException("User with ID: " + id + " not found", "Id", id);
 			} else if (userExists.getRole() == "admin") {
 				throw new Exception("Admin cannot edit another admin credentials");
 			} else {
-				userService.editUser(u);
+				userService.editUser(userExists, u);
 				return new ResponseEntity<>("Details were updated successfully", HttpStatus.OK);
 			}
 

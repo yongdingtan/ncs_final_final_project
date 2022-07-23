@@ -13,7 +13,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
-import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -25,15 +24,10 @@ public class User implements Serializable, Comparable<User> {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int userId;
-	@NotNull
 	private String username;
-	@NotNull
 	private String password;
-	@NotNull
 	private String role;
-	@NotNull
 	private String email;
-	@NotNull
 	private boolean is_available = true;
 	private Date date_created;
 	private Timestamp date_updated;
@@ -42,7 +36,6 @@ public class User implements Serializable, Comparable<User> {
 	@JoinColumn(name = "userId")
 	@JsonBackReference
 	private Set<Test_Score> allTestScore;
-	
 
 	public User() {
 		super();

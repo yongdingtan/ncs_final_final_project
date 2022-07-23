@@ -69,19 +69,6 @@ public class TokenValidatorController {
 						return true;
 					}
 				}
-				/*
-				 * if (jwtUtil.validateToken(jwtToken, userDetails)) {
-				 * 
-				 * System.out.println(" --->> 6 Inside if jwtToken Validate ");
-				 * UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new
-				 * UsernamePasswordAuthenticationToken(userDetails, null,
-				 * userDetails.getAuthorities());
-				 * 
-				 * usernamePasswordAuthenticationToken .setDetails(new
-				 * WebAuthenticationDetailsSource().buildDetails(request));
-				 * SecurityContextHolder.getContext().setAuthentication(
-				 * usernamePasswordAuthenticationToken); return true; }
-				 */
 
 				System.out.println("--->> 5.b Inside else ");
 				return false;

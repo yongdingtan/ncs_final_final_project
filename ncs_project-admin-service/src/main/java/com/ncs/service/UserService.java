@@ -23,7 +23,7 @@ public interface UserService extends UserDetailsService {
 
 	public List<User> getAllUsersByRole(String role);
 
-	public void editUser(User u);
+	public void editUser(User userExists, User u);
 
 	public boolean deleteUser(int userId);
 
