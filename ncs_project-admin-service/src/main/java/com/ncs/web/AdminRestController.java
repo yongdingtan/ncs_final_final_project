@@ -163,7 +163,7 @@ public class AdminRestController {
 			User userExists = userService.findUserById(id);
 			if (userExists == null) {
 				throw new ResourceNotFoundException("User with ID: " + id + " not found", "Id", id);
-			} else if (userExists.getRole() == "admin") {
+			} else if (userExists.getRole().equalsIgnoreCase("admin")) {
 				throw new Exception("Admin cannot edit another admin credentials");
 			} else {
 				userService.editUser(userExists, u);

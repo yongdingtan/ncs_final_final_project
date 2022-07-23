@@ -85,10 +85,10 @@ public class UserServiceImpl implements UserService {
 	public void editUser(User userExists, User u) {
 
 		User editedUser = userRepository.findUserById(userExists.getUserId());
-		if (editedUser.getPassword() != null) {
+		if (u.getPassword() != null) {
 			editedUser.setPassword(u.getPassword());
 		}
-		if (editedUser.getEmail() != null) {
+		if (u.getEmail() != null) {
 			editedUser.setEmail(u.getEmail());
 		}
 
