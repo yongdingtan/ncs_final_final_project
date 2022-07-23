@@ -76,9 +76,12 @@ public class TestScoreServiceImpl implements TestScoreService {
 		int count = 0;
 		List<Integer> numberOfValidTests = new ArrayList<>();
 		for (User user : allUsers) {
-			for (Test_Score testScore : user.getAllTestScore()) {
-				if (testScore.getMarks() > ts.getMarks()) {
-					numberOfValidTests.add(user.getUserId());
+			if (user.getUserId() != u.getUserId() || !user.equals(u)) {
+				for (Test_Score testScore : user.getAllTestScore()) {
+					if (testScore.getMarks() > ts.getMarks() && testScore.getCategory().equals(ts.getCategory())
+							&& testScore.getLevel().equals(ts.getLevel())) {
+						numberOfValidTests.add(user.getUserId());
+					}
 				}
 			}
 		}
@@ -98,9 +101,12 @@ public class TestScoreServiceImpl implements TestScoreService {
 		int count = 0;
 		List<Integer> numberOfValidTests = new ArrayList<>();
 		for (User user : allUsers) {
-			for (Test_Score testScore : user.getAllTestScore()) {
-				if (testScore.getMarks() < ts.getMarks()) {
-					numberOfValidTests.add(user.getUserId());
+			if (user.getUserId() != u.getUserId() || !user.equals(u)) {
+				for (Test_Score testScore : user.getAllTestScore()) {
+					if (testScore.getMarks() < ts.getMarks() && testScore.getCategory().equals(ts.getCategory())
+							&& testScore.getLevel().equals(ts.getLevel())) {
+						numberOfValidTests.add(user.getUserId());
+					}
 				}
 			}
 		}

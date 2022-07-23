@@ -1,11 +1,8 @@
 package com.ncs.web;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import javax.validation.Valid;
 
@@ -35,6 +32,7 @@ import com.ncs.dto.QuestionResponseDTO;
 import com.ncs.dto.StudentAverageTestScoreResponseDTO;
 import com.ncs.dto.TestScoreResponseDTO;
 import com.ncs.dto.UserResponseDTO;
+import com.ncs.dto.UserTestScoreResponseDTO;
 import com.ncs.exception.InvalidCorrectAnswerException;
 import com.ncs.exception.InvalidCredentialsException;
 import com.ncs.exception.ResourceNotFoundException;
@@ -76,38 +74,6 @@ public class AdminRestController {
 		this.questionService = questionService;
 	}
 
-	// Read User By UserID
-	@GetMapping("/user/read/{id}")
-	@ResponseBody
-	public ResponseEntity<UserResponseDTO> getUserDetails(@RequestHeader(name = "Authorization") String token,
-			@PathVariable int id) throws Exception {
-		loggerUser.info("Inside Get User API Call");
-
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
-			User userExists = userService.findUserById(id);
-			if (userExists == null) {
-				throw new ResourceNotFoundException("User with ID: " + id + " not found", "Id", id);
-			} else {
-				UserResponseDTO user = dtoUser.convertToResponse(userExists);
-				return new ResponseEntity<UserResponseDTO>(user, HttpStatus.OK);
-			}
-		} else {
-			throw new Exception("Invalid credentials");
-		}
-
-	}
-
 	// Get all User By Roles
 	@GetMapping("/user/roles/{roles}")
 	@ResponseBody
@@ -143,10 +109,43 @@ public class AdminRestController {
 
 	}
 
+	// Read User By UserID
+	@GetMapping("/user/read/{id}")
+	@ResponseBody
+	public ResponseEntity<UserResponseDTO> getUserDetails(@RequestHeader(name = "Authorization") String token,
+			@PathVariable int id) throws Exception {
+		loggerUser.info("Inside Get User API Call");
+
+		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set("Authorization", token);
+		headers.set("userType", "admin");
+
+		HttpEntity<String> header = new HttpEntity<String>(headers);
+		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
+		boolean jwtStatus = result.getBody();
+
+		if (jwtStatus) {
+			User userExists = userService.findUserById(id);
+			if (userExists == null) {
+				throw new ResourceNotFoundException("User with ID: " + id + " not found", "Id", id);
+			} else {
+				UserResponseDTO user = dtoUser.convertToResponse(userExists);
+				return new ResponseEntity<UserResponseDTO>(user, HttpStatus.OK);
+			}
+		} else {
+			throw new Exception("Invalid credentials");
+		}
+
+	}
+
 	// Update User
-	@PutMapping("/user/edit/{userId}")
-	public ResponseEntity<?> editUser(@RequestHeader(name = "Authorization") String token,
-			@PathVariable(required = true) int userId, @RequestBody User u) throws Exception {
+	@PutMapping("/editmode/user/edit/{id}")
+	@ResponseBody
+	public ResponseEntity<?> editUser(@RequestHeader(name = "Authorization") String token, @PathVariable int id,
+			@RequestBody User u) throws Exception {
 		loggerUser.info("Inside Edit User API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -161,16 +160,15 @@ public class AdminRestController {
 		boolean jwtStatus = result.getBody();
 
 		if (jwtStatus) {
-			User userExists = userService.findUserById(userId);
+			User userExists = userService.findUserById(id);
 			if (userExists == null) {
-				throw new ResourceNotFoundException("User with ID: " + userId + " not found", "Id", userId);
+				throw new ResourceNotFoundException("Userrrr with ID: " + id + " not found", "Id", id);
 			} else if (userExists.getRole() == "admin") {
 				throw new Exception("Admin cannot edit another admin credentials");
 			} else {
 				userService.editUser(u);
+				return new ResponseEntity<>("Details were updated successfully", HttpStatus.OK);
 			}
-
-			return new ResponseEntity<>("Details were updated successfully", HttpStatus.OK);
 
 		} else {
 			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
@@ -375,15 +373,14 @@ public class AdminRestController {
 			List<StudentAverageTestScoreResponseDTO> responseDTO = new ArrayList<>();
 			for (User user : allStudents) {
 				for (Test_Score ts : user.getAllTestScore()) {
-					totalMarks = totalMarks + ts.getTotalScore();
+					totalMarks += ts.getMarks();
 					count++;
 				}
-				if (average < count || average == 0 || count == 0)
-					average = 0;
-				else
-					average = totalMarks / count;
+				average = totalMarks / count;
 				responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
 				count = 0;
+				totalMarks = 0;
+				average = 0;
 			}
 			return new ResponseEntity<List<StudentAverageTestScoreResponseDTO>>(responseDTO, HttpStatus.OK);
 
@@ -395,7 +392,7 @@ public class AdminRestController {
 
 	// Filters students by their average test score and returns a list
 	@GetMapping("/student/sort")
-	public ResponseEntity<List<UserResponseDTO>> sortStudentsByCategory(
+	public ResponseEntity<List<UserTestScoreResponseDTO>> sortStudentsByCategory(
 			@RequestHeader(name = "Authorization") String token, @RequestParam(required = true) String category) {
 		loggerUser.info("Inside Filter Student GET API Call");
 
@@ -412,28 +409,18 @@ public class AdminRestController {
 
 		if (jwtStatus) {
 			List<User> allStudents = userService.getAllStudents();
-			List<UserResponseDTO> responseDTO = new ArrayList<>();
+			List<UserTestScoreResponseDTO> response = new ArrayList<>();
+			List<TestScoreResponseDTO> validTestScores = new ArrayList<>();
 			for (User user : allStudents) {
 				for (Test_Score ts : user.getAllTestScore()) {
 					if (ts.getCategory().equals(category)) {
-						responseDTO.add(dtoUser.convertToResponse(user));
+						validTestScores.add(dtoTestScore.convertToResponse(ts));
 					}
 				}
+				response.add(dtoUser.convertToUserTestScoreResponse(user, validTestScores));
 			}
 
-			SortedSet<UserResponseDTO> set = new TreeSet<UserResponseDTO>(new Comparator<UserResponseDTO>() {
-				public int compare(UserResponseDTO o1, UserResponseDTO o2) {
-					if (o1.equals(o2)) {
-						return 1;
-					} else
-						return 0;
-				}
-			});
-
-			set.addAll(responseDTO);
-			List<UserResponseDTO> response = new ArrayList(set);
-
-			return new ResponseEntity<List<UserResponseDTO>>(response, HttpStatus.OK);
+			return new ResponseEntity<List<UserTestScoreResponseDTO>>(response, HttpStatus.OK);
 
 		} else {
 

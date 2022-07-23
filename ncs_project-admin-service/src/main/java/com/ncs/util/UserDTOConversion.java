@@ -1,7 +1,11 @@
 package com.ncs.util;
 
+import java.util.List;
+
 import com.ncs.dto.StudentAverageTestScoreResponseDTO;
+import com.ncs.dto.TestScoreResponseDTO;
 import com.ncs.dto.UserResponseDTO;
+import com.ncs.dto.UserTestScoreResponseDTO;
 import com.ncs.model.User;
 
 public class UserDTOConversion {
@@ -25,6 +29,19 @@ public class UserDTOConversion {
 		dto.setUsername(u.getUsername());
 		dto.setRole(u.getRole());
 		dto.setEmail(u.getEmail());
+
+		return dto;
+	}
+
+	public static UserTestScoreResponseDTO convertToUserTestScoreResponse(User u,
+			List<TestScoreResponseDTO> testScores) {
+		UserTestScoreResponseDTO dto = new UserTestScoreResponseDTO();
+
+		dto.setUserId(u.getUserId());
+		dto.setUsername(u.getUsername());
+		dto.setRole(u.getRole());
+		dto.setEmail(u.getEmail());
+		dto.setAllTestScore(testScores);
 
 		return dto;
 	}

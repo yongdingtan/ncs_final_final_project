@@ -21,12 +21,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import com.ncs.dto.QuestionResponseDTO;
 import com.ncs.dto.StudentTestScoreResponseDTO;
 import com.ncs.dto.TestScoreResponseDTO;
 import com.ncs.exception.InvalidCredentialsException;
@@ -145,8 +143,8 @@ public class StudentRestController {
 	@PostMapping("/exam/answer")
 	@ResponseBody
 	public ResponseEntity<StudentTestScoreResponseDTO> answerQuestions(
-			@RequestHeader(name = "Authorization") String token, @RequestBody ArrayList<String> answers,
-			@RequestParam String category, @RequestParam String level) throws Exception {
+			@RequestHeader(name = "Authorization") String token, @RequestBody ArrayList<String> answers)
+			throws Exception {
 		loggerQuestion.info("Inside Answer Exam Questions API Call");
 
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
@@ -162,20 +160,18 @@ public class StudentRestController {
 		boolean jwtStatus = result.getBody();
 
 		if (jwtStatus) {
-			ResponseEntity<List<QuestionResponseDTO>> examQuestions = restTemplate
-					.exchange(
-							"http://NCS-PROJECT-QUESTION-SERVICE/question/exam/attempt" + "?category=" + category
-									+ "&level=" + level,
-							HttpMethod.GET, null, new ParameterizedTypeReference<List<QuestionResponseDTO>>() {
-							});
-			List<QuestionResponseDTO> questions = examQuestions.getBody();
+			ResponseEntity<List<Question>> examQuestions = restTemplate.exchange(
+					"http://NCS-PROJECT-QUESTION-SERVICE/question/exam/examquestions", HttpMethod.GET, null,
+					new ParameterizedTypeReference<List<Question>>() {
+					});
+			List<Question> questions = examQuestions.getBody();
 			ArrayList<String> correctAnswers = new ArrayList<>();
-
+			System.out.println(questions);
 			int totalMarks = 0;
 
-			QuestionResponseDTO DTOQuestion = questions.get(0);
+			Question DTOQuestion = questions.get(0);
 
-			for (QuestionResponseDTO dto : questions) {
+			for (Question dto : questions) {
 				correctAnswers.add(dto.getCorrectAnswer());
 			}
 
@@ -195,7 +191,7 @@ public class StudentRestController {
 			int totalScore = totalMarks * 5;
 
 			Test_Score testScore = new Test_Score();
-			testScore.setLevel(level);
+			testScore.setLevel(questionLevel);
 			testScore.setCategory(DTOQuestion.getQuestionCategory());
 			testScore.setDate(date);
 			testScore.setMarks(totalScore);
