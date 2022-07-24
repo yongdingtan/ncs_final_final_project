@@ -1,6 +1,8 @@
 package com.ncs.web;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -74,13 +76,7 @@ public class AdminRestController {
 		this.questionService = questionService;
 	}
 
-	// Get all User By Roles
-	@GetMapping("/user/roles/{roles}")
-	@ResponseBody
-	public ResponseEntity<List<UserResponseDTO>> getUsersByRoles(@RequestHeader(name = "Authorization") String token,
-			@PathVariable String roles) throws Exception {
-		loggerUser.info("Inside Get User By Roles API Call");
-
+	public Boolean validateUser(String token) {
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
 
 		HttpHeaders headers = new HttpHeaders();
@@ -92,7 +88,17 @@ public class AdminRestController {
 		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
 		boolean jwtStatus = result.getBody();
 
-		if (jwtStatus) {
+		return jwtStatus;
+	}
+
+	// Get all User By Roles
+	@GetMapping("/user/roles/{roles}")
+	@ResponseBody
+	public ResponseEntity<List<UserResponseDTO>> getUsersByRoles(@RequestHeader(name = "Authorization") String token,
+			@PathVariable String roles) throws Exception {
+		loggerUser.info("Inside Get User By Roles API Call");
+
+		if (validateUser(token)) {
 			List<User> allUsers = userService.getAllUsersByRole(roles);
 			if (allUsers.isEmpty()) {
 				throw new ResourceNotFoundException("No Users Found", roles, 0);
@@ -104,7 +110,7 @@ public class AdminRestController {
 				return new ResponseEntity<List<UserResponseDTO>>(userResponse, HttpStatus.OK);
 			}
 		} else {
-			throw new Exception("Invalid Credentials");
+			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
 		}
 
 	}
@@ -116,18 +122,7 @@ public class AdminRestController {
 			@PathVariable int id) throws Exception {
 		loggerUser.info("Inside Get User API Call");
 
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateUser(token)) {
 			User userExists = userService.findUserById(id);
 			if (userExists == null) {
 				throw new ResourceNotFoundException("User with ID: " + id + " not found", "Id", id);
@@ -148,18 +143,7 @@ public class AdminRestController {
 			@RequestBody User u) throws Exception {
 		loggerUser.info("Inside Edit User API Call");
 
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateUser(token)) {
 			User userExists = userService.findUserById(id);
 			if (userExists == null) {
 				throw new ResourceNotFoundException("User with ID: " + id + " not found", "Id", id);
@@ -183,18 +167,7 @@ public class AdminRestController {
 			@PathVariable(required = true) int id) throws Exception {
 		loggerUser.info("Inside Delete User API Call");
 
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateUser(token)) {
 			User userExists = userService.findUserById(id);
 			if (userExists == null) {
 				throw new ResourceNotFoundException("User", "Id", id);
@@ -226,18 +199,7 @@ public class AdminRestController {
 			@PathVariable(required = true) int testId) throws Exception {
 		loggerTestScore.info("Inside Get Test Score API Call");
 
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateUser(token)) {
 			Test_Score ts = testScoreService.getTestScoreByID(testId);
 			TestScoreResponseDTO testScore = dtoTestScore.convertToResponse(ts);
 			return new ResponseEntity<TestScoreResponseDTO>(testScore, HttpStatus.OK);
@@ -255,18 +217,7 @@ public class AdminRestController {
 			@PathVariable(required = true) int userId) throws Exception {
 		loggerTestScore.info("Inside Get All Test Scores By User ID API Call");
 
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateUser(token)) {
 			User user = userService.findUserById(userId);
 			Set<Test_Score> rawTestScores = user.getAllTestScore();
 			List<TestScoreResponseDTO> allTestScores = new ArrayList<>();
@@ -287,18 +238,7 @@ public class AdminRestController {
 			@PathVariable(required = true) int studentId, @RequestBody Test_Score ts) throws Exception {
 		loggerTestScore.info("Inside Edit Test Score API Call");
 
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateUser(token)) {
 			Set<Test_Score> tsExists = testScoreService.readTestScore(studentId);
 			if (tsExists.isEmpty()) {
 				throw new ResourceNotFoundException("Test Score with ID " + studentId + " not found", "Id:", studentId);
@@ -320,18 +260,7 @@ public class AdminRestController {
 			@PathVariable(required = true) int id) throws Exception {
 		loggerTestScore.info("Inside Delete Test Score API Call");
 
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateUser(token)) {
 			Set<Test_Score> tsExists = testScoreService.readTestScore(id);
 			if (tsExists.isEmpty()) {
 				throw new ResourceNotFoundException("Test Score with ID " + id + " not found", "Id", id);
@@ -348,24 +277,14 @@ public class AdminRestController {
 
 	}
 
-	// Filters students by their average test score and returns a list
+	// Filters students by their average test score and returns a list from highest
+	// score to lowest score
 	@GetMapping("/student/filter")
 	public ResponseEntity<List<StudentAverageTestScoreResponseDTO>> filterStudentsByAverageTestScore(
 			@RequestHeader(name = "Authorization") String token) {
 		loggerUser.info("Inside Filter Student GET API Call");
 
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateUser(token)) {
 			int count = 0;
 			int totalMarks = 0;
 			double average = 0;
@@ -382,6 +301,11 @@ public class AdminRestController {
 				totalMarks = 0;
 				average = 0;
 			}
+			Collections.sort(responseDTO, new Comparator<StudentAverageTestScoreResponseDTO>() {
+				public int compare(StudentAverageTestScoreResponseDTO a, StudentAverageTestScoreResponseDTO b) {
+					return b.getAverageScore() - a.getAverageScore();
+				}
+			});
 			return new ResponseEntity<List<StudentAverageTestScoreResponseDTO>>(responseDTO, HttpStatus.OK);
 
 		} else {
@@ -390,28 +314,18 @@ public class AdminRestController {
 		}
 	}
 
-	// Filters students by their average test score and returns a list
+	// Sort students by their test category and returns a list
 	@GetMapping("/student/sort")
 	public ResponseEntity<List<UserTestScoreResponseDTO>> sortStudentsByCategory(
 			@RequestHeader(name = "Authorization") String token, @RequestParam(required = true) String category) {
 		loggerUser.info("Inside Filter Student GET API Call");
 
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateUser(token)) {
 			List<User> allStudents = userService.getAllStudents();
 			List<UserTestScoreResponseDTO> response = new ArrayList<>();
-			List<TestScoreResponseDTO> validTestScores = new ArrayList<>();
 			for (User user : allStudents) {
+
+				List<TestScoreResponseDTO> validTestScores = new ArrayList<>();
 				for (Test_Score ts : user.getAllTestScore()) {
 					if (ts.getCategory().equals(category)) {
 						validTestScores.add(dtoTestScore.convertToResponse(ts));
@@ -435,18 +349,7 @@ public class AdminRestController {
 			@Valid @RequestBody Question q) throws Exception {
 		loggerQuestion.info("Inside Question Creation");
 
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateUser(token)) {
 			List<String> allOptions = new ArrayList<>();
 			allOptions.add(q.getQuestionOptionOne());
 			allOptions.add(q.getQuestionOptionTwo());
@@ -474,18 +377,7 @@ public class AdminRestController {
 			@PathVariable(required = true) int id) throws Exception {
 		loggerQuestion.info("Inside Get Question API Call");
 
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateUser(token)) {
 			Question question = questionService.readQuestion(id);
 			if (question == null) {
 				throw new ResourceNotFoundException("Question ID not found", "Question Id", id);
@@ -506,18 +398,7 @@ public class AdminRestController {
 			@RequestHeader(name = "Authorization") String token, @RequestParam String category) throws Exception {
 		loggerQuestion.info("Inside Get Category API Call");
 
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateUser(token)) {
 
 			List<Question> listOfQuestions = questionService.getAllQuestionByCategory(category);
 			if (listOfQuestions.isEmpty())
@@ -542,18 +423,7 @@ public class AdminRestController {
 			@PathVariable(required = true) int id, @RequestBody Question q) throws Exception {
 		loggerQuestion.info("Inside Edit Question API Call");
 
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateUser(token)) {
 			Question questionExists = questionService.readQuestion(id);
 			if (questionExists == null)
 				throw new ResourceNotFoundException("Question " + id + " not found", "Id", id);
@@ -576,18 +446,7 @@ public class AdminRestController {
 			@PathVariable(required = true) int id) throws Exception {
 		loggerQuestion.info("Inside Delete Question API Call");
 
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "admin");
-
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateUser(token)) {
 			Question questionExists = questionService.readQuestion(id);
 			if (questionExists == null)
 				throw new ResourceNotFoundException("Question " + id + " not found", "Id", id);

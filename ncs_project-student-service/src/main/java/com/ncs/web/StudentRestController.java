@@ -101,12 +101,7 @@ public class StudentRestController {
 		return list;
 	}
 
-	// Get all results unique to current user (Student)
-	@GetMapping("/results")
-	public ResponseEntity<List<TestScoreResponseDTO>> getStudentResults(
-			@RequestHeader(name = "Authorization") String token) throws Exception {
-		loggerUser.info("Inside Edit User API Call");
-
+	public Boolean validateToken(String token) {
 		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
 
 		HttpHeaders headers = new HttpHeaders();
@@ -120,7 +115,17 @@ public class StudentRestController {
 		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
 		boolean jwtStatus = result.getBody();
 
-		if (jwtStatus) {
+		return jwtStatus;
+	}
+
+	// Get all results unique to current user (Student)
+	@GetMapping("/results")
+	public ResponseEntity<List<TestScoreResponseDTO>> getStudentResults(
+			@RequestHeader(name = "Authorization") String token) throws Exception {
+		loggerUser.info("Inside Edit User API Call");
+		String username = getUsernameFromToken(token);
+
+		if (validateToken(token)) {
 			User userExists = userService.findUserByUsername(username);
 			if (userExists == null) {
 				throw new ResourceNotFoundException("Student with username: " + username + " not found", "Id", 0);
@@ -146,20 +151,9 @@ public class StudentRestController {
 			@RequestHeader(name = "Authorization") String token, @RequestBody ArrayList<String> answers)
 			throws Exception {
 		loggerQuestion.info("Inside Answer Exam Questions API Call");
-
-		String endPoint = "http://NCS-PROJECT-PUBLIC-SERVICE/public/validate";
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", token);
-		headers.set("userType", "student");
-
 		String username = getUsernameFromToken(token);
 
-		HttpEntity<String> header = new HttpEntity<String>(headers);
-		ResponseEntity<Boolean> result = restTemplate.exchange(endPoint, HttpMethod.GET, header, Boolean.class);
-		boolean jwtStatus = result.getBody();
-
-		if (jwtStatus) {
+		if (validateToken(token)) {
 			ResponseEntity<List<Question>> examQuestions = restTemplate.exchange(
 					"http://NCS-PROJECT-QUESTION-SERVICE/question/exam/examquestions", HttpMethod.GET, null,
 					new ParameterizedTypeReference<List<Question>>() {
