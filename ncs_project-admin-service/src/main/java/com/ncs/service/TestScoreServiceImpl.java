@@ -47,21 +47,15 @@ public class TestScoreServiceImpl implements TestScoreService {
 	}
 
 	@Override
-	public void editTestScore(Test_Score ts, int studentId) {
-		User user = userRepository.findUserById(studentId);
-		Test_Score editedTestScore = new Test_Score();
-		Set<Test_Score> userTest_Score = user.getAllTestScore();
-		for (Test_Score test_Score : userTest_Score) {
-			if (test_Score.getTestId() == ts.getTestId())
-				editedTestScore = test_Score;
-		}
-		if (editedTestScore.getDate() != null)
+	public void editTestScore(Test_Score ts, int testScoreId) {
+		Test_Score editedTestScore = testScoreRepository.getTestScoreByID(testScoreId);
+		if (ts.getDate() != null)
 			editedTestScore.setDate(ts.getDate());
-		if (editedTestScore.getLevel() != null)
+		if (ts.getLevel() != null)
 			editedTestScore.setLevel(ts.getLevel());
-		if (editedTestScore.getMarks() != 0)
+		if (ts.getMarks() != 0)
 			editedTestScore.setMarks(ts.getMarks());
-		if (editedTestScore.getTotalScore() != 0)
+		if (ts.getTotalScore() != 0)
 			editedTestScore.setTotalScore(ts.getTotalScore());
 		editedTestScore.setDate_updated(new Timestamp(System.currentTimeMillis()));
 		testScoreRepository.save(editedTestScore);

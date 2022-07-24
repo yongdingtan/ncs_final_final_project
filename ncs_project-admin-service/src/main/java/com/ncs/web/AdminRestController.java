@@ -235,15 +235,15 @@ public class AdminRestController {
 	@PutMapping("/testscore/edit/{id}")
 	@ResponseBody
 	public ResponseEntity<?> editTestScore(@RequestHeader(name = "Authorization") String token,
-			@PathVariable(required = true) int studentId, @RequestBody Test_Score ts) throws Exception {
+			@PathVariable(required = true) int id, @RequestBody Test_Score ts) throws Exception {
 		loggerTestScore.info("Inside Edit Test Score API Call");
 
 		if (validateUser(token)) {
-			Set<Test_Score> tsExists = testScoreService.readTestScore(studentId);
-			if (tsExists.isEmpty()) {
-				throw new ResourceNotFoundException("Test Score with ID " + studentId + " not found", "Id:", studentId);
+			Test_Score tsExists = testScoreService.getTestScoreByID(id);
+			if (tsExists == null) {
+				throw new ResourceNotFoundException("Test Score with ID " + id + " not found", "Id:", id);
 			} else {
-				testScoreService.editTestScore(ts, studentId);
+				testScoreService.editTestScore(ts, id);
 			}
 			return new ResponseEntity<>("Details were updated successfully", HttpStatus.OK);
 
