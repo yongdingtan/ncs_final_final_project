@@ -281,7 +281,8 @@ public class AdminRestController {
 	// score to lowest score
 	@GetMapping("/student/filter")
 	public ResponseEntity<List<StudentAverageTestScoreResponseDTO>> filterStudentsByAverageTestScore(
-			@RequestHeader(name = "Authorization") String token) {
+			@RequestHeader(name = "Authorization") String token, @RequestParam(required = false) String category,
+			@RequestParam(required = false) String level) {
 		loggerUser.info("Inside Filter Student GET API Call");
 
 		if (validateUser(token)) {
@@ -290,16 +291,60 @@ public class AdminRestController {
 			double average = 0;
 			List<User> allStudents = userService.getAllStudents();
 			List<StudentAverageTestScoreResponseDTO> responseDTO = new ArrayList<>();
-			for (User user : allStudents) {
-				for (Test_Score ts : user.getAllTestScore()) {
-					totalMarks += ts.getMarks();
-					count++;
+			if (category == null && level == null) {
+				for (User user : allStudents) {
+					for (Test_Score ts : user.getAllTestScore()) {
+						totalMarks += ts.getMarks();
+						count++;
+					}
+					average = totalMarks / count;
+					responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
+					count = 0;
+					totalMarks = 0;
+					average = 0;
 				}
-				average = totalMarks / count;
-				responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
-				count = 0;
-				totalMarks = 0;
-				average = 0;
+			} else if (category != null && level == null) {
+				for (User user : allStudents) {
+					for (Test_Score ts : user.getAllTestScore()) {
+						if (ts.getCategory().equals(category)) {
+							totalMarks += ts.getMarks();
+							count++;
+						}
+					}
+					average = totalMarks / count;
+					responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
+					count = 0;
+					totalMarks = 0;
+					average = 0;
+				}
+			} else if (category == null && level != null) {
+				for (User user : allStudents) {
+					for (Test_Score ts : user.getAllTestScore()) {
+						if (ts.getLevel().equals(level)) {
+							totalMarks += ts.getMarks();
+							count++;
+						}
+					}
+					average = totalMarks / count;
+					responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
+					count = 0;
+					totalMarks = 0;
+					average = 0;
+				}
+			} else if (category != null && level != null) {
+				for (User user : allStudents) {
+					for (Test_Score ts : user.getAllTestScore()) {
+						if (ts.getLevel().equals(level) && ts.getCategory().equals(category)) {
+							totalMarks += ts.getMarks();
+							count++;
+						}
+					}
+					average = totalMarks / count;
+					responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
+					count = 0;
+					totalMarks = 0;
+					average = 0;
+				}
 			}
 			Collections.sort(responseDTO, new Comparator<StudentAverageTestScoreResponseDTO>() {
 				public int compare(StudentAverageTestScoreResponseDTO a, StudentAverageTestScoreResponseDTO b) {
@@ -317,21 +362,35 @@ public class AdminRestController {
 	// Sort students by their test category and returns a list
 	@GetMapping("/student/sort")
 	public ResponseEntity<List<UserTestScoreResponseDTO>> sortStudentsByCategory(
-			@RequestHeader(name = "Authorization") String token, @RequestParam(required = true) String category) {
+			@RequestHeader(name = "Authorization") String token, @RequestParam(required = true) String category,
+			@RequestParam(required = false) String level) {
 		loggerUser.info("Inside Filter Student GET API Call");
 
 		if (validateUser(token)) {
 			List<User> allStudents = userService.getAllStudents();
 			List<UserTestScoreResponseDTO> response = new ArrayList<>();
-			for (User user : allStudents) {
+			if (level == null) {
+				for (User user : allStudents) {
 
-				List<TestScoreResponseDTO> validTestScores = new ArrayList<>();
-				for (Test_Score ts : user.getAllTestScore()) {
-					if (ts.getCategory().equals(category)) {
-						validTestScores.add(dtoTestScore.convertToResponse(ts));
+					List<TestScoreResponseDTO> validTestScores = new ArrayList<>();
+					for (Test_Score ts : user.getAllTestScore()) {
+						if (ts.getCategory().equals(category)) {
+							validTestScores.add(dtoTestScore.convertToResponse(ts));
+						}
 					}
+					response.add(dtoUser.convertToUserTestScoreResponse(user, validTestScores));
 				}
-				response.add(dtoUser.convertToUserTestScoreResponse(user, validTestScores));
+			} else if (level != null) {
+				for (User user : allStudents) {
+
+					List<TestScoreResponseDTO> validTestScores = new ArrayList<>();
+					for (Test_Score ts : user.getAllTestScore()) {
+						if (ts.getCategory().equals(category) && ts.getLevel().equals(level)) {
+							validTestScores.add(dtoTestScore.convertToResponse(ts));
+						}
+					}
+					response.add(dtoUser.convertToUserTestScoreResponse(user, validTestScores));
+				}
 			}
 
 			return new ResponseEntity<List<UserTestScoreResponseDTO>>(response, HttpStatus.OK);
