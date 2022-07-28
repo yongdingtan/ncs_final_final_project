@@ -160,7 +160,6 @@ public class StudentRestController {
 					});
 			List<Question> questions = examQuestions.getBody();
 			ArrayList<String> correctAnswers = new ArrayList<>();
-			System.out.println(questions);
 			int totalMarks = 0;
 
 			Question DTOQuestion = questions.get(0);

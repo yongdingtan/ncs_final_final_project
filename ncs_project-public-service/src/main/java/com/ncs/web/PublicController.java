@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ncs.dto.JWTResponseDTO;
+import com.ncs.exception.InvalidPasswordException;
 import com.ncs.model.User;
 import com.ncs.service.UserService;
 import com.ncs.service.UserServiceImpl;
@@ -31,6 +32,8 @@ public class PublicController {
 	UserService userService;
 	@Autowired
 	JWTUtil jwtUtil;
+	@Autowired
+	PasswordValidator passwordValidator;
 
 	private static final Logger logger = LoggerFactory.getLogger(User.class);
 
@@ -43,8 +46,17 @@ public class PublicController {
 	// Create User
 	@PostMapping("/register")
 	@ResponseBody
-	public ResponseEntity<?> createUser(@RequestBody User u) {
+	public ResponseEntity<?> createUser(@RequestBody User u) throws InvalidPasswordException {
 		logger.info("Inside User Creation");
+
+		if (!PasswordValidator.isValid(u.getPassword()))
+			throw new InvalidPasswordException(
+					"Password must contain at least one digit [0-9].\r\n"
+							+ "Password must contain at least one lowercase Latin character [a-z].\r\n"
+							+ "Password must contain at least one uppercase Latin character [A-Z].\r\n"
+							+ "Password must contain at least one special character like ! @ # & ( ).\r\n"
+							+ "Password must contain a length of at least 8 characters and a maximum of 20 characters.",
+					u.getPassword(), 0);
 
 		User userExists = userService.findUserByUsername(u.getUsername());
 		User emailExists = userService.findUserByEmail(u.getUsername());

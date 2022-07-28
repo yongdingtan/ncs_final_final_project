@@ -13,15 +13,13 @@ public class QuestionResponseDTO {
 	private String questionOptionTwo;
 	private String questionOptionThree;
 	private String questionOptionFour;
-	private String correctAnswer;
 
 	public QuestionResponseDTO() {
 		super();
 	}
 
 	public QuestionResponseDTO(int questionNumber, String questionString, String questionCategory, int questionMarks,
-			String questionOptionOne, String questionOptionTwo, String questionOptionThree, String questionOptionFour,
-			String correctAnswer) {
+			String questionOptionOne, String questionOptionTwo, String questionOptionThree, String questionOptionFour) {
 		super();
 		this.questionNumber = questionNumber;
 		this.questionString = questionString;
@@ -31,7 +29,6 @@ public class QuestionResponseDTO {
 		this.questionOptionTwo = questionOptionTwo;
 		this.questionOptionThree = questionOptionThree;
 		this.questionOptionFour = questionOptionFour;
-		this.correctAnswer = correctAnswer;
 	}
 
 	public int getQuestionNumber() {
@@ -96,14 +93,6 @@ public class QuestionResponseDTO {
 
 	public void setQuestionOptionFour(String questionOptionFour) {
 		this.questionOptionFour = questionOptionFour;
-	}
-
-	public String getCorrectAnswer() {
-		return correctAnswer;
-	}
-
-	public void setCorrectAnswer(String correctAnswer) {
-		this.correctAnswer = correctAnswer;
 	}
 
 	@Override

@@ -193,7 +193,7 @@ public class AdminRestController {
 	}
 
 	// Get Test Score By ID
-	@GetMapping("/testscore/{id}")
+	@GetMapping("/testscore/{testId}")
 	@ResponseBody
 	public ResponseEntity<TestScoreResponseDTO> readTestScore(@RequestHeader(name = "Authorization") String token,
 			@PathVariable(required = true) int testId) throws Exception {
@@ -487,7 +487,7 @@ public class AdminRestController {
 			if (questionExists == null)
 				throw new ResourceNotFoundException("Question " + id + " not found", "Id", id);
 			else {
-				questionService.editQuestion(q);
+				questionService.editQuestion(questionExists, q);
 			}
 
 			return new ResponseEntity<>("Details were updated successfully", HttpStatus.OK);

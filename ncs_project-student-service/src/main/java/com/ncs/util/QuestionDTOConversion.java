@@ -20,7 +20,6 @@ public class QuestionDTOConversion {
 		dto.setQuestionOptionTwo(q.getQuestionOptionTwo());
 		dto.setQuestionOptionThree(q.getQuestionOptionThree());
 		dto.setQuestionOptionFour(q.getQuestionOptionFour());
-		dto.setCorrectAnswer(q.getCorrectAnswer());
 
 		return dto;
 	}

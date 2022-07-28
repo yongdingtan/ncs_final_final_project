@@ -14,7 +14,7 @@ public interface QuestionService {
 
 	public List<Question> getExamQuestions(String category, String level);
 
-	public void editQuestion(Question q);
+	public void editQuestion(Question editedQuestion, Question q);
 
 	public boolean deleteQuestion(int questionId);
 
