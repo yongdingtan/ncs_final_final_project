@@ -261,8 +261,8 @@ public class AdminRestController {
 		loggerTestScore.info("Inside Delete Test Score API Call");
 
 		if (validateUser(token)) {
-			Set<Test_Score> tsExists = testScoreService.readTestScore(id);
-			if (tsExists.isEmpty()) {
+			Test_Score tsExists = testScoreService.getTestScoreByID(id);
+			if (tsExists == null) {
 				throw new ResourceNotFoundException("Test Score with ID " + id + " not found", "Id", id);
 			} else {
 				boolean status = testScoreService.deleteTestScore(id);

@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -24,6 +25,7 @@ public class User implements Serializable, Comparable<User> {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(nullable = false, updatable = false)
 	private int userId;
 	@NotNull
 	private String username;
@@ -42,7 +44,6 @@ public class User implements Serializable, Comparable<User> {
 	@JoinColumn(name = "userId")
 	@JsonBackReference
 	private Set<Test_Score> allTestScore;
-	
 
 	public User() {
 		super();
