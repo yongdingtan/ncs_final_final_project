@@ -23,6 +23,6 @@ public interface UserRepository extends JpaRepository<User, Integer>, CustomUser
 	@Query("from User u where u.password = :password AND u.is_available = 1")
 	public User findByPassword(String password);
 
-	@Query("from User u where u.role = 'student'")
+	@Query("from User u where u.role = 'student' AND u.is_available = 1")
 	public List<User> getAllStudents();
 }

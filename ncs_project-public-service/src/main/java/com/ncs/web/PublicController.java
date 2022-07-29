@@ -1,5 +1,6 @@
 package com.ncs.web;
 
+import org.apache.http.auth.InvalidCredentialsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,9 @@ public class PublicController {
 	}
 
 	// Create User
+	// Takes in a User body and checks with the database if the username/email
+	// already exists
+	// Returns a message stating success if successful
 	@PostMapping("/register")
 	@ResponseBody
 	public ResponseEntity<?> createUser(@RequestBody User u) throws InvalidPasswordException {
@@ -51,10 +55,10 @@ public class PublicController {
 
 		if (!PasswordValidator.isValid(u.getPassword()))
 			throw new InvalidPasswordException(
-					"Password must contain at least one digit [0-9].\r\n"
-							+ "Password must contain at least one lowercase Latin character [a-z].\r\n"
-							+ "Password must contain at least one uppercase Latin character [A-Z].\r\n"
-							+ "Password must contain at least one special character like ! @ # & ( ).\r\n"
+					"Password must contain at least one digit [0-9]."
+							+ "Password must contain at least one lowercase Latin character [a-z]."
+							+ "Password must contain at least one uppercase Latin character [A-Z]."
+							+ "Password must contain at least one special character like ! @ # & ( )."
 							+ "Password must contain a length of at least 8 characters and a maximum of 20 characters.",
 					u.getPassword(), 0);
 
@@ -77,7 +81,7 @@ public class PublicController {
 	// Login
 	@PostMapping("/login")
 	@ResponseBody
-	public ResponseEntity<JWTResponseDTO> loginUser(@RequestBody User u) throws Exception {
+	public ResponseEntity<JWTResponseDTO> loginUser(@RequestBody User u) throws InvalidCredentialsException {
 
 		logger.info("Inside User Login");
 
@@ -87,7 +91,7 @@ public class PublicController {
 					.authenticate(new UsernamePasswordAuthenticationToken(u.getUsername(), u.getPassword()));
 
 		} catch (Exception e) {
-			throw new Exception("Invalid credentials");
+			throw new InvalidCredentialsException("Invalid credentials");
 		}
 
 		UserDetails userDetails = userServiceImpl.loadUserByUsername(u.getUsername());

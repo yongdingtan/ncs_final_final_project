@@ -92,6 +92,7 @@ public class AdminRestController {
 	}
 
 	// Get all User By Roles
+	// Returns a list of user which has that role
 	@GetMapping("/user/roles/{roles}")
 	@ResponseBody
 	public ResponseEntity<List<UserResponseDTO>> getUsersByRoles(@RequestHeader(name = "Authorization") String token,
@@ -116,6 +117,7 @@ public class AdminRestController {
 	}
 
 	// Read User By UserID
+	// Returns the user who has that id
 	@GetMapping("/user/read/{id}")
 	@ResponseBody
 	public ResponseEntity<UserResponseDTO> getUserDetails(@RequestHeader(name = "Authorization") String token,
@@ -137,6 +139,8 @@ public class AdminRestController {
 	}
 
 	// Update User
+	// Checks if the new email is already in use
+	// Returns a success message upon successful update
 	@PutMapping("/user/edit/{id}")
 	@ResponseBody
 	public ResponseEntity<?> editUser(@RequestHeader(name = "Authorization") String token, @PathVariable int id,
@@ -145,10 +149,11 @@ public class AdminRestController {
 
 		if (validateUser(token)) {
 			User userExists = userService.findUserById(id);
+			User emailExists = userService.findUserByEmail(u.getEmail());
 			if (userExists == null) {
 				throw new ResourceNotFoundException("User with ID: " + id + " not found", "Id", id);
-			} else if (userExists.getRole().equalsIgnoreCase("admin")) {
-				throw new Exception("Admin cannot edit another admin credentials");
+			} else if (emailExists != null) {
+				throw new Exception("Email already exists");
 			} else {
 				userService.editUser(userExists, u);
 				return new ResponseEntity<>("Details were updated successfully", HttpStatus.OK);
@@ -161,6 +166,8 @@ public class AdminRestController {
 	}
 
 	// Delete User
+	// Checks if the student still has test scores
+	// Returns a success message upon successful deletion
 	@DeleteMapping("/user/delete/{id}")
 	@ResponseBody
 	public ResponseEntity<?> deleteUser(@RequestHeader(name = "Authorization") String token,
@@ -193,6 +200,7 @@ public class AdminRestController {
 	}
 
 	// Get Test Score By ID
+	// Returns the test score which has that ID
 	@GetMapping("/testscore/{testId}")
 	@ResponseBody
 	public ResponseEntity<TestScoreResponseDTO> readTestScore(@RequestHeader(name = "Authorization") String token,
@@ -201,8 +209,12 @@ public class AdminRestController {
 
 		if (validateUser(token)) {
 			Test_Score ts = testScoreService.getTestScoreByID(testId);
-			TestScoreResponseDTO testScore = dtoTestScore.convertToResponse(ts);
-			return new ResponseEntity<TestScoreResponseDTO>(testScore, HttpStatus.OK);
+			if (ts == null) {
+				throw new ResourceNotFoundException("Test Score with ID: " + testId + " not found.", null, 0);
+			} else {
+				TestScoreResponseDTO testScore = dtoTestScore.convertToResponse(ts);
+				return new ResponseEntity<TestScoreResponseDTO>(testScore, HttpStatus.OK);
+			}
 
 		} else {
 			throw new InvalidCredentialsException("Invalid Credentials", null, 0);
@@ -293,57 +305,65 @@ public class AdminRestController {
 			List<StudentAverageTestScoreResponseDTO> responseDTO = new ArrayList<>();
 			if (category == null && level == null) {
 				for (User user : allStudents) {
-					for (Test_Score ts : user.getAllTestScore()) {
-						totalMarks += ts.getMarks();
-						count++;
+					if (!user.getAllTestScore().isEmpty()) {
+						for (Test_Score ts : user.getAllTestScore()) {
+							totalMarks += ts.getMarks();
+							count++;
+						}
+						average = totalMarks / count;
+						responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
+						count = 0;
+						totalMarks = 0;
+						average = 0;
 					}
-					average = totalMarks / count;
-					responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
-					count = 0;
-					totalMarks = 0;
-					average = 0;
 				}
 			} else if (category != null && level == null) {
 				for (User user : allStudents) {
-					for (Test_Score ts : user.getAllTestScore()) {
-						if (ts.getCategory().equals(category)) {
-							totalMarks += ts.getMarks();
-							count++;
+					if (!user.getAllTestScore().isEmpty()) {
+						for (Test_Score ts : user.getAllTestScore()) {
+							if (ts.getCategory().equals(category)) {
+								totalMarks += ts.getMarks();
+								count++;
+							}
 						}
+						average = totalMarks / count;
+						responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
+						count = 0;
+						totalMarks = 0;
+						average = 0;
 					}
-					average = totalMarks / count;
-					responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
-					count = 0;
-					totalMarks = 0;
-					average = 0;
 				}
 			} else if (category == null && level != null) {
 				for (User user : allStudents) {
-					for (Test_Score ts : user.getAllTestScore()) {
-						if (ts.getLevel().equals(level)) {
-							totalMarks += ts.getMarks();
-							count++;
+					if (!user.getAllTestScore().isEmpty()) {
+						for (Test_Score ts : user.getAllTestScore()) {
+							if (ts.getLevel().equals(level)) {
+								totalMarks += ts.getMarks();
+								count++;
+							}
 						}
+						average = totalMarks / count;
+						responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
+						count = 0;
+						totalMarks = 0;
+						average = 0;
 					}
-					average = totalMarks / count;
-					responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
-					count = 0;
-					totalMarks = 0;
-					average = 0;
 				}
 			} else if (category != null && level != null) {
 				for (User user : allStudents) {
-					for (Test_Score ts : user.getAllTestScore()) {
-						if (ts.getLevel().equals(level) && ts.getCategory().equals(category)) {
-							totalMarks += ts.getMarks();
-							count++;
+					if (!user.getAllTestScore().isEmpty()) {
+						for (Test_Score ts : user.getAllTestScore()) {
+							if (ts.getLevel().equals(level) && ts.getCategory().equals(category)) {
+								totalMarks += ts.getMarks();
+								count++;
+							}
 						}
+						average = totalMarks / count;
+						responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
+						count = 0;
+						totalMarks = 0;
+						average = 0;
 					}
-					average = totalMarks / count;
-					responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
-					count = 0;
-					totalMarks = 0;
-					average = 0;
 				}
 			}
 			Collections.sort(responseDTO, new Comparator<StudentAverageTestScoreResponseDTO>() {

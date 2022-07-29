@@ -13,13 +13,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import com.ncs.dto.QuestionResponseDTO;
+import com.ncs.exception.InvalidCredentialsException;
 import com.ncs.model.Question;
 import com.ncs.model.User;
 import com.ncs.service.QuestionService;
@@ -50,7 +50,6 @@ public class QuestionRestController {
 	RestTemplate restTemplate;
 
 	private static final Logger loggerUser = LoggerFactory.getLogger(User.class);
-	private static final Logger loggerQuestion = LoggerFactory.getLogger(Question.class);
 
 	List<Question> allQuestions = new ArrayList<>();
 
@@ -78,31 +77,28 @@ public class QuestionRestController {
 		return jwtStatus;
 	}
 
-	// Return list of questions to student
+	// Returns the list of questions to student
 	@GetMapping("/exam/examquestions")
 	public ResponseEntity<List<Question>> getExamQuestions() {
 		return new ResponseEntity<List<Question>>(allQuestions, HttpStatus.OK);
 	}
 
 	// Get all exam questions
+	// Takes in two required parameters
+	// Returns a list of twenty random questions to the frontend
 	@GetMapping("/exam/attempt")
-	public ResponseEntity<List<QuestionResponseDTO>> showExamQuestions(
-			@RequestHeader(name = "Authorization") String token, @RequestParam(required = true) String category,
-			@RequestParam(required = true) String level) throws Exception {
-		loggerUser.info("Inside Edit User API Call");
+	public ResponseEntity<List<QuestionResponseDTO>> showExamQuestions(@RequestParam(required = true) String category,
+			@RequestParam(required = true) String level) throws InvalidCredentialsException {
+		loggerUser.info("Inside Get Exam Questions API Call");
 
-		if (validateToken(token)) {
-			allQuestions = questionService.getExamQuestions(category, level);
-			List<QuestionResponseDTO> questionsToStudent = new ArrayList<>();
-			for (Question question : questionService.getExamQuestions(category, level)) {
-				questionsToStudent.add(questionConversion.convertToResponse(question));
-			}
+		allQuestions = questionService.getExamQuestions(category, level);
+		List<QuestionResponseDTO> questionsToStudent = new ArrayList<>();
+		int count = 1;
+		for (Question question : allQuestions) {
+			question.setQuestionNumber(count++);
+			questionsToStudent.add(questionConversion.convertToResponse(question));
 
-			return new ResponseEntity<List<QuestionResponseDTO>>(questionsToStudent, HttpStatus.OK);
-		} else {
-			throw new Exception("Invalid Credentials");
 		}
-
+		return new ResponseEntity<List<QuestionResponseDTO>>(questionsToStudent, HttpStatus.OK);
 	}
-
 }
