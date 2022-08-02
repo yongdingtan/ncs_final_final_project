@@ -103,9 +103,11 @@ public class TestScoreServiceImpl implements TestScoreService {
 		for (User user : allUsers) {
 			if (user.getUserId() != u.getUserId() || !user.equals(u)) {
 				for (Test_Score testScore : user.getAllTestScore()) {
-					if (testScore.getMarks() < ts.getMarks() && testScore.getCategory().equals(ts.getCategory())
-							&& testScore.getLevel().equals(ts.getLevel())) {
-						numberOfValidTests.add(user.getUserId());
+					if (testScore != null) {
+						if (testScore.getMarks() < ts.getMarks() && testScore.getCategory().equals(ts.getCategory())
+								&& testScore.getLevel().equals(ts.getLevel())) {
+							numberOfValidTests.add(user.getUserId());
+						}
 					}
 				}
 			}

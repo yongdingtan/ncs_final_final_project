@@ -78,9 +78,8 @@ public class QuestionRestController {
 
 		allQuestions = questionService.getExamQuestions(category, level);
 		List<QuestionResponseDTO> questionsToStudent = new ArrayList<>();
-		int count = 1;
 		for (Question question : allQuestions) {
-			question.setQuestionNumber(count++);
+			question.setQuestionNumber(question.getQuestionNumber());
 			questionsToStudent.add(questionConversion.convertToResponse(question));
 
 		}

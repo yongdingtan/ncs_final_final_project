@@ -11,10 +11,11 @@ export class StudentService {
 
   constructor(private httpClient:HttpClient) { }
 
-  answerExamQuestions(answers:number[]):
+  answerExamQuestions(username:string, answers:Map<number, string>):
   Observable<any>
   {
-    return this.httpClient.post(baseUrl+'exam/answer', answers);
+    
+    return this.httpClient.post(baseUrl+'exam/answer/'+username, answers);
   }
 
   getTestResults(username:string):

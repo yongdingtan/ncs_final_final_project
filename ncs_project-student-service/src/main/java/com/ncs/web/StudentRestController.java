@@ -4,17 +4,18 @@ import java.security.SignatureException;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import javax.ws.rs.core.Context;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -25,7 +26,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -64,9 +64,6 @@ public class StudentRestController {
 
 	@Autowired
 	AuthTokenFilter tokenFilter;
-
-	@Autowired
-	HttpServletRequest request;
 
 	@Autowired
 	TestScoreRepository testScoreRepository;
@@ -131,29 +128,19 @@ public class StudentRestController {
 	}
 
 	// Answer a list of questions
-	@PostMapping("/exam/answer")
-	@ResponseBody
-	public ResponseEntity<StudentTestScoreResponseDTO> answerQuestions(@RequestParam(required = true) int userId,
-			@RequestBody ArrayList<String> answers) throws Exception {
+	@PostMapping("/exam/answer/{username}")
+	public ResponseEntity<StudentTestScoreResponseDTO> answerQuestions(@PathVariable(required = true) String username,
+			@Valid @RequestBody HashMap<Integer, String> answers) throws Exception {
 		loggerQuestion.info("Inside Answer Exam Questions API Call");
+		int totalScore = 0;
+		Question DTOQuestion = new Question();
 
-		ResponseEntity<List<Question>> examQuestions = restTemplate.exchange(
-				"http://NCS-PROJECT-QUESTION-SERVICE/question/exam/examquestions", HttpMethod.GET, null,
-				new ParameterizedTypeReference<List<Question>>() {
-				});
-		List<Question> questions = examQuestions.getBody();
-		ArrayList<String> correctAnswers = new ArrayList<>();
-		int totalMarks = 0;
-
-		Question DTOQuestion = questions.get(0);
-
-		for (Question dto : questions) {
-			correctAnswers.add(dto.getCorrectAnswer());
-		}
-
-		for (int i = 0; i < 20; i++) {
-			if (correctAnswers.get(i).equals(answers.get(i)))
-				totalMarks++;
+		for (Map.Entry<Integer, String> set : answers.entrySet()) {
+			Question question = questionService.readQuestion(set.getKey());
+			DTOQuestion = question;
+			if (question.getCorrectAnswer().equals(set.getValue())) {
+				totalScore++;
+			}
 		}
 
 		Date date = Date.valueOf(LocalDate.now());
@@ -164,16 +151,16 @@ public class StudentRestController {
 			questionLevel = "Intermediate";
 		else if (DTOQuestion.getQuestionMarks() == 3)
 			questionLevel = "Advanced";
-		int totalScore = totalMarks * 5;
+		totalScore = totalScore * 5;
 
 		Test_Score testScore = new Test_Score();
 		testScore.setLevel(questionLevel);
 		testScore.setCategory(DTOQuestion.getQuestionCategory());
 		testScore.setDate(date);
 		testScore.setMarks(totalScore);
-		testScore.setTotalScore(20);
+		testScore.setTotalScore(100);
 
-		User u = userService.findUserById(userId);
+		User u = userService.findUserByUsername(username);
 		userService.saveScore(u, testScore);
 
 		int numberOfStudentsAboveYou = 0;
