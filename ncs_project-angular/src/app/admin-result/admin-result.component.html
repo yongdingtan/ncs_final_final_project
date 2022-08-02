@@ -1,0 +1,52 @@
+<div class="container">
+    <div class="search-container">
+  <h2>Result Details</h2>
+<br>
+  <br />
+  <br />
+  <div class="table-responsive table-container table table-striped">
+    <div style="margin-left: 30px">
+        <h3>Filter</h3>
+        <select (change)="applyFilter($event)"> 
+            <option [ngValue]="null" disabled>Select Category</option>
+            <option *ngFor="let category of Categories" value="{{category}}">{{category}}</option>
+          </select>
+          <select (change)="applyFilter($event)"> 
+            <option [ngValue]="null" disabled>Select Category</option>
+            <option *ngFor="let level of Level" value="{{level}}">{{level}}</option>
+          </select>
+</div>
+<table class="table">
+    <thead>
+      <tr>
+        <th>Test Id</th>
+        <th>User Id</th>
+        <th>Date</th>
+        <th>Category</th>
+        <th>Level</th>
+        <th>Total Score</th>
+        <th>Marks</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let testScore of apiResponse">
+        <td>{{ testScore.testId }}</td>
+        <td>{{ testScore.userId}}</td>
+        <td>{{ testScore.date }}</td>
+        <td>{{ testScore.category }}</td>
+        <td>{{ testScore.level }}</td>
+        <td>{{ testScore.marks }}</td>
+        <td>{{ testScore.totalScore }}</td>
+      
+
+        <td>
+          <button (click)="deleteTestScore(testScore.testId)">
+          </button>
+          <button
+            (click)="updateTestScore(testScore.testId)">
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

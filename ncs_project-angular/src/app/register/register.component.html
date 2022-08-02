@@ -1,0 +1,45 @@
+<div class="container col-md-6">
+  <h1 style="color: red;">Register User</h1>
+   <form  *ngIf="!isSuccessful" name = "form" #f="ngForm" (ngSubmit)="f.form.valid && onSubmit(f)" novalidate>
+ 
+     <div class="mb-3">
+       <label for="exampleFormControlInput1" class="form-label">Username</label>
+       <input type="text" class="form-control" id="username" name="username" [(ngModel)]="user.username">
+     </div>
+     <div class="mb-3">
+       <label for="exampleFormControlInput1" class="form-label">Password</label>
+       <input type="password" class="form-control" id="password" name="password" [(ngModel)]="user.password"  minlength="8" maxlength="20" #upassword="ngModel">
+       <div *ngIf="upassword.errors && f.submitted && !isValidFormSubmitted" [ngClass] = "'error'"> 
+        <div style="color: red"*ngIf="upassword?.errors?.['minlength']">
+           Name must be at least 8 characters long.
+       </div>
+     </div>	
+      </div>
+     <div class="mb-3">
+       <label for="exampleFormControlInput1" class="form-label">Email</label>
+       <input type="email" class="form-control" id="email" name="email" [(ngModel)]="user.email" >
+      </div>
+     <div class="mb-3">
+      <label for="exampleFormControlInput1" class="form-label">Role</label>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="role" id="admin" value="admin" [(ngModel)]="user.role">
+        <label class="form-check-label" for="exampleRadios1">
+          Admin
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="role" id="student" value="student" [(ngModel)]="user.role">
+        <label class="form-check-label" for="exampleRadios2">
+        Student
+        </label>
+      </div>
+    </div>
+   <button type="submit" class="btn btn-primary">Register</button>
+   <div class="alert alert-warning" *ngIf="f.submitted && isSignUpFailed">
+    Signup failed!<br />{{ errorMessage }}
+  </div>
+   </form>
+   <div class="alert alert-success" *ngIf="isSuccessful">
+    Your registration is successful!
+  </div>
+ </div>

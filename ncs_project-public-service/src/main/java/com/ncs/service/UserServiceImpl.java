@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.ncs.exception.ResourceNotFoundException;
 import com.ncs.model.MyUserDetails;
@@ -37,15 +38,13 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override // from UserDetailsService
+	@Transactional
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-		User user = userRepository.getUsersByUsername(username);
-		System.out.println(" ");
-		System.out.println("--------Inside App User Service IMP ---------- ");
-		System.out.println(" Arg :- " + username);
-		System.out.println(" From Database " + user.toString());
+		User user = userRepository.findByUsername(username)
+				.orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
 
-		return new MyUserDetails(user);
+		return MyUserDetails.build(user);
 	}
 
 	@Override

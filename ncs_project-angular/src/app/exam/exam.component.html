@@ -1,0 +1,52 @@
+<div class="container">
+    <h3 style="text-align:center">
+        Welcome to Quiz Application &#x263A;
+      </h3>
+      <div class="card" [hidden]="isExamCardShown">
+        <div class="card-body">
+          <div class="row justify-content-md-center">
+            <div class="col-sm-12 col-lg-3">
+              <button class="btn btn-block btn-outline-primary cursor-restriction" style="margin-top: 24px;" (click)="startQuiz()">
+                Start Quiz </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    <div class="card" [hidden]="!isExamCardShown">
+        <div class="card-body">
+        <form #questionTest="ngForm" novalidate>
+        <br>
+        <h5>{{questions[0].questionCategory}}</h5>
+        <br>
+        <div *ngFor="let question of questions">
+            <div><b>Question {{question.questionNumber}}: <br>{{question.questionString}}</b></div>
+            
+          <div class="form-group row">
+            <div class="form-check form-check-inline mr-1">
+                <input class="form-check-input" type="radio" name="{{question.questionOptionOne}}" value="{{question.questionOptionOne}}" [(ngModel)]="question.questionSelected">
+                <label class="form-check-label"> {{question.questionOptionOne}} </label>
+              </div>
+              <div class="form-check form-check-inline mr-1">
+                <input class="form-check-input" type="radio" name="{{question.questionOptionTwo}}" value="{{question.questionOptionTwo}}" [(ngModel)]="question.questionSelected">
+                <label class="form-check-label"> {{question.questionOptionTwo}} </label>
+              </div>
+              <div class="form-check form-check-inline mr-1">
+                <input class="form-check-input" type="radio" name="{{question.questionOptionThree}}" value="{{question.questionOptionThree}}" [(ngModel)]="question.questionSelected">
+                <label class="form-check-label"> {{question.questionOptionThree}} </label>
+              </div>
+              <div class="form-check form-check-inline mr-1">
+                <input class="form-check-input" type="radio" name="{{question.questionOptionFour}}" value="{{question.questionOptionFour}}" [(ngModel)]="question.questionSelected">
+                <label class="form-check-label"> {{question.questionOptionFour}} </label>
+              </div>
+              </div>
+        </div>
+    </form>
+    </div>
+    <div class="col-12" style="justify-content: center;display: flex;">
+        <button class="btn btn-success" style="margin-right: 10px" (click)="submitTest()">Submit</button>
+    </div>
+    </div>
+</div>
+<div class="card" [hidden]="isScoreShown">
+    Total Score: {{totalScore}}
+</div>

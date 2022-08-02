@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 public class TestScoreResponseDTO {
 
 	private int testId;
+	private int userId;
 	private Date date;
 	private String category;
 	private String level;
@@ -19,9 +20,11 @@ public class TestScoreResponseDTO {
 		super();
 	}
 
-	public TestScoreResponseDTO(int testId, Date date, String category, String level, int totalScore, int marks) {
+	public TestScoreResponseDTO(int testId, int userId, Date date, String category, String level, int totalScore,
+			int marks) {
 		super();
 		this.testId = testId;
+		this.userId = userId;
 		this.date = date;
 		this.category = category;
 		this.level = level;
@@ -77,9 +80,23 @@ public class TestScoreResponseDTO {
 		this.marks = marks;
 	}
 
+	public int getUserId() {
+		return userId;
+	}
+
+	public void setUserId(int userId) {
+		this.userId = userId;
+	}
+
+	@Override
+	public String toString() {
+		return "TestScoreResponseDTO [testId=" + testId + ", userId=" + userId + ", date=" + date + ", category="
+				+ category + ", level=" + level + ", totalScore=" + totalScore + ", marks=" + marks + "]";
+	}
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(category, date, level, marks, testId, totalScore);
+		return Objects.hash(category, date, level, marks, testId, totalScore, userId);
 	}
 
 	@Override
@@ -93,13 +110,7 @@ public class TestScoreResponseDTO {
 		TestScoreResponseDTO other = (TestScoreResponseDTO) obj;
 		return Objects.equals(category, other.category) && Objects.equals(date, other.date)
 				&& Objects.equals(level, other.level) && marks == other.marks && testId == other.testId
-				&& totalScore == other.totalScore;
-	}
-
-	@Override
-	public String toString() {
-		return "TestScoreResponseDTO [testId=" + testId + ", date=" + date + ", category=" + category + ", level="
-				+ level + ", totalScore=" + totalScore + ", marks=" + marks + "]";
+				&& totalScore == other.totalScore && userId == other.userId;
 	}
 
 }

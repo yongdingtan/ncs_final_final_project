@@ -1,0 +1,194 @@
+<div class="container">
+    <div class="search-container">
+        <h2>Question Details</h2>
+        <br>
+        <div>
+            <h3>Filter</h3>
+            <select (change)="applyFilter($event)">
+                <option [ngValue]="null" disabled>Select Category</option>
+                <option *ngFor="let category of Categories" value="{{category}}">{{category}}</option>
+            </select>
+            <select (change)="applyFilter($event)">
+                <option [ngValue]="null" disabled>Select Category</option>
+                <option *ngFor="let level of marks" value="{{level}}">{{level}}</option>
+            </select>
+            <button mat-raised-button (click)="moveToAddQuestion()" style="width:180px; float:right;">
+                Add Question
+            </button>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Question Number</th>
+                        <th>Question String</th>
+                        <th>Question Category</th>
+                        <th>Question Marks</th>
+                        <th>Question Option One</th>
+                        <th>Question Option Two</th>
+                        <th>Question Option Three</th>
+                        <th>Question Option Four</th>
+                        <th>Correct Answer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let question of apiResponse | paginate: {itemsPerPage: count, currentPage: p}; let i = index">
+                        <td>{{ question.questionNumber }}</td>
+                        <td>{{ question.questionString}}</td>
+                        <td>{{ question.questionCategory }}</td>
+                        <td>{{ question.questionMarks }}</td>
+                        <td>{{ question.questionOptionOne }}</td>
+                        <td>{{ question.questionOptionTwo }}</td>
+                        <td>{{ question.questionOptionThree }}</td>
+                        <td>{{ question.questionOptionFour }}</td>
+                        <td>{{ question.correctAnswer }}</td>
+
+
+                        <td>
+                            <!-- <div class="col-md-2"><button class="btn btn-success"
+                                    (click)="updateQuestion()">Update</button></div> -->
+                            <a (click)="openEdit(question, question.questionNumber)">
+                                <div class="col-md-2"><button class="btn btn-success">UPDATE
+                                </button></div>
+                            </a>
+                            <div class="col-md-2"><button class="btn btn-danger"
+                                    (click)="deleteQuestion(question.questionNumber)">DELETE</button></div>
+
+                        </td>
+                        <td *ngIf="editForm && clickedIndex === question.questionNumber">
+
+                            <form [formGroup]="editForm">
+
+                                <div class="form-group">
+                                    <label for="questionNumber">Question Number:</label>
+                                    <!-- <input ng-readonly formControlName="questionNumber" value = 3 name="questionNumber" class="form-control"
+                                      id="questionNumber" /> -->
+                                      <input formControlName="questionNumber" placeholder="Question Number" name="questionNumber" class="form-control"
+                                      id="questionNumber" />
+                                    </div>
+
+                                  <span class="help-block" *ngIf="
+                                  editForm.get('questionNumber')?.hasError('required') &&
+                                  editForm.get('questionNumber')?.touched
+                                      ">
+                                    <p style="color: red;">Question Number is required
+                                  </span>
+
+                                <div class="form-group">
+                                    <label for="questionString">Question String:</label>
+                                    <input formControlName="questionString" placeholder="Question String" name="questionString" class="form-control"
+                                      id="questionString" />
+                                  </div>
+                            
+                                  <span class="help-block" *ngIf="
+                                  editForm.get('questionString')?.hasError('required') &&
+                                  editForm.get('questionString')?.touched
+                                      ">
+                                    <p style="color: red;">Question is required
+                                  </span>
+                            
+                                  <div class="form-group">
+                                    <label for="questionCategory">Category:</label>
+                                    <input formControlName="questionCategory" placeholder="Category" name="questionCategory" class="form-control"
+                                      id="questionCategory" />
+                                  </div>
+                            
+                                  <span class="help-block" *ngIf="
+                                  editForm.get('questionCategory')?.hasError('required') &&
+                                  editForm.get('questionCategory')?.touched
+                                      ">
+                                    <p style="color: red;">Category is required
+                                  </span>
+                            
+                                  <div class="form-group">
+                                    <label for="questionMarks">Marks:</label>
+                                    <input formControlName="questionMarks" placeholder="1-3" name="questionMarks" class="form-control"
+                                      id="questionMarks" />
+                                  </div>
+                            
+                                  <span class="help-block" *ngIf="
+                                  editForm.get('questionMarks')?.hasError('required') &&
+                                  editForm.get('questionMarks')?.touched
+                                    ">
+                                    <p style="color: red;">Marks is required
+                                  </span>
+                            
+                            
+                            
+                                  <div class="form-group">
+                                    <label for="questionOptionOne">Option one:</label>
+                                    <input formControlName="questionOptionOne" placeholder="Option one" name="questionOptionOne"
+                                      class="form-control" id="questionOptionOne" />
+                                  </div>
+                            
+                                  <span class="help-block" *ngIf="
+                                  editForm.get('questionOptionOne')?.hasError('required') &&
+                                  editForm.get('questionOptionOne')?.touched
+                                    ">
+                                    <p style="color: red;">Option one is required
+                                  </span>
+                            
+                                  <div class="form-group">
+                                    <label for="questionOptionTwo">Option two:</label>
+                                    <input formControlName="questionOptionTwo" placeholder="Option two" name="questionOptionTwo"
+                                      class="form-control" id="questionOptionTwo" />
+                                  </div>
+                            
+                                  <span class="help-block" *ngIf="
+                                  editForm.get('questionOptionTwo')?.hasError('required') &&
+                                  editForm.get('questionOptionTwo')?.touched
+                                  ">
+                                    <p style="color: red;">Option two is required
+                                  </span>
+                            
+                                  <div class="form-group">
+                                    <label for="questionOptionThree">Option three:</label>
+                                    <input formControlName="questionOptionThree" placeholder="Option three" name="questionOptionThree"
+                                      class="form-control" id="questionOptionThree" />
+                                  </div>
+                            
+                                  <span class="help-block" *ngIf="
+                                  editForm.get('option3')?.hasError('required') &&
+                                  editForm.get('option3')?.touched
+                                  ">
+                                    <p style="color: red;">Option three is required
+                                  </span>
+                            
+                                  <div class="form-group">
+                                    <label for="questionOptionFour">Option four:</label>
+                                    <input formControlName="questionOptionFour" placeholder="Option four" name="questionOptionFour"
+                                      class="form-control" id="questionOptionFour" />
+                                  </div>
+                            
+                                  <span class="help-block" *ngIf="
+                                  editForm.get('questionOptionFour')?.hasError('required') &&
+                                  editForm.get('questionOptionFour')?.touched
+                                  ">
+                                    <p style="color: red;">Option four is required
+                                  </span>
+                            
+                                  <div class="form-group">
+                                    <label for="correctAnswer">Correct Answer:</label>
+                                    <input formControlName="correctAnswer" placeholder="Correct Answer" name="correctAnswer" class="form-control"
+                                      id="correctAnswer" />
+                                  </div>
+                            
+                                  <span class="help-block" *ngIf="
+                                  editForm.get('correctAnswer')?.hasError('required') &&
+                                  editForm.get('correctAnswer')?.touched
+                                  ">
+                                    <p style="color: red;">A correct answer is required
+                                  </span>
+                            
+                                  <br />
+                                <div class="form-group">
+                                    <button class="btn btn-success" type="submit"  (click)="updateQuestion()">Save</button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="text-right">
+                <pagination-controls (pageChange)="p = $event"></pagination-controls>
+            </div>
+
+        </div>

@@ -18,4 +18,18 @@ public class TestScoreDTOConversion {
 		return dto;
 	}
 
+	public static TestScoreResponseDTO convertToResponseWithUserId(Test_Score ts, int userId) {
+		TestScoreResponseDTO dto = new TestScoreResponseDTO();
+
+		dto.setTestId(ts.getTestId());
+		dto.setUserId(userId);
+		dto.setDate(ts.getDate());
+		dto.setCategory(ts.getCategory());
+		dto.setLevel(ts.getLevel());
+		dto.setTotalScore(ts.getTotalScore());
+		dto.setMarks(ts.getMarks());
+
+		return dto;
+	}
+
 }

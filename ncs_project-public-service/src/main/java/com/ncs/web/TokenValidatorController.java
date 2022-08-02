@@ -43,7 +43,7 @@ public class TokenValidatorController {
 
 			try {
 
-				username = jwtUtil.extractUsername(jwtToken);
+				username = jwtUtil.getUserNameFromJwtToken(jwtToken);
 				System.out.println(" 4 username from token is :- " + username);
 
 			} catch (Exception e) {

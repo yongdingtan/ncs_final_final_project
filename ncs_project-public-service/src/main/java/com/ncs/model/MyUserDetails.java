@@ -1,41 +1,63 @@
 package com.ncs.model;
 
-import java.util.Arrays;
 import java.util.Collection;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class MyUserDetails implements UserDetails {
-	private User user;
+
+	private int id;
+
+	private String username;
+
+	private String email;
+	@JsonIgnore
+	private String password;
+
+	private String role;
+
+	private Collection<? extends GrantedAuthority> authorities;
+
+	public MyUserDetails(int id, String username, String email, String password, String role) {
+		this.id = id;
+		this.username = username;
+		this.email = email;
+		this.password = password;
+		this.role = role;
+	}
 
 	public MyUserDetails(User user) {
-		super();
-		this.user = user;
+		// TODO Auto-generated constructor stub
 	}
 
-	public MyUserDetails() {
+	public static MyUserDetails build(User user) {
+
+		return new MyUserDetails(user.getUserId(), user.getUsername(), user.getEmail(), user.getPassword(),
+				user.getRole());
 	}
 
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		// String authority = user.getRole();
-		SimpleGrantedAuthority a = new SimpleGrantedAuthority(user.getRole());
-		System.out.println("--->> Inside MyUserDetails class :- " + a.getAuthority());
-		return Arrays.asList(a);
+	public String getEmail() {
+		return email;
+	}
 
+	public String getRole() {
+		return role;
+	}
+
+	public int getId() {
+		return id;
 	}
 
 	@Override
 	public String getPassword() {
-		String password = user.getPassword();
 		return password;
 	}
 
 	@Override
 	public String getUsername() {
-		String username = user.getUsername();
 		return username;
 	}
 
@@ -57,6 +79,12 @@ public class MyUserDetails implements UserDetails {
 	@Override
 	public boolean isEnabled() {
 		return true;
+	}
+
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		// TODO Auto-generated method stub
+		return authorities;
 	}
 
 }

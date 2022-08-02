@@ -1,27 +1,27 @@
-
-
-
-<mat-card class="example-card">
-  <mat-card-header>
-    <mat-card-title>Login</mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
-    <div class="alert alert-danger" [hidden]="!error">
-      There was a problem logging in. Please try again.
+<div class="container col-md-6">
+  <h1 style="color: red;">Login</h1>
+   <form  *ngIf="!isLoggedIn"
+   name="form"
+   (ngSubmit)="f.form.valid && onSubmit(f)"
+   #f="ngForm"
+   novalidate>
+ 
+     <div class="mb-3">
+       <label for="exampleFormControlInput1" class="form-label">Username</label>
+       <input type="text" class="form-control" id="username" name="username" [(ngModel)]="user.username">
+     </div>
+     <div class="mb-3">
+       <label for="exampleFormControlInput1" class="form-label">Password</label>
+       <input type="password" class="form-control" id="password" name="password" [(ngModel)]="user.password" >
+     </div>
+   <button type="submit" class="btn btn-primary">Login</button>
+   <div class="form-group">
+    <div *ngIf="f.submitted && isLoginFailed" class="alert alert-danger" role="alert">
+      Login failed: {{ errorMessage }}
     </div>
-    <form role="form" (submit)="login()">
-      <div class="form-group">
-        <label for="username">Username:</label> <input type="text"
-          class="form-control" id="username" name="username" [(ngModel)]="credentials.username"/>
-      </div>
-      <div class="form-group">
-        <label for="password">Password:</label> <input type="password"
-          class="form-control" id="password" name="password" [(ngModel)]="credentials.password"/>
-      </div>
-      <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
-  </mat-card-content>
-  <mat-card-actions>
-    <button mat-raised-button (click)="checkLogin()" color="primary">Login</button>
-  </mat-card-actions>
-</mat-card>
+  </div>
+   </form>
+   <div class="alert alert-success" *ngIf="isLoggedIn">
+    Logged in as {{ roles }}.
+  </div>
+ </div>

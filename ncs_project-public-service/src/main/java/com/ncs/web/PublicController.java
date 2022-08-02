@@ -1,28 +1,41 @@
 package com.ncs.web;
 
+import javax.validation.Valid;
+
 import org.apache.http.auth.InvalidCredentialsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ncs.dto.JWTResponseDTO;
+import com.ncs.dto.MessageResponse;
+import com.ncs.dto.UserInfoResponse;
 import com.ncs.exception.InvalidPasswordException;
+import com.ncs.model.LoginRequest;
+import com.ncs.model.MyUserDetails;
+import com.ncs.model.SignupRequest;
 import com.ncs.model.User;
 import com.ncs.service.UserService;
 import com.ncs.service.UserServiceImpl;
 import com.ncs.util.JWTUtil;
 
+@Validated
 @RestController
+@CrossOrigin(origins = { "http://localhost:8092", "http://localhost:4200" }, allowedHeaders = "*")
 @RequestMapping("/public")
 public class PublicController {
 
@@ -35,6 +48,8 @@ public class PublicController {
 	JWTUtil jwtUtil;
 	@Autowired
 	PasswordValidator passwordValidator;
+	@Autowired
+	PasswordEncoder encoder;
 
 	private static final Logger logger = LoggerFactory.getLogger(User.class);
 
@@ -45,12 +60,13 @@ public class PublicController {
 	}
 
 	// Create User
-	// Takes in a User body and checks with the database if the username/email
-	// already exists
+	// Takes in a SignupRequest body and checks with the database if the
+	// username/email already exists
 	// Returns a message stating success if successful
+
 	@PostMapping("/register")
 	@ResponseBody
-	public ResponseEntity<?> createUser(@RequestBody User u) throws InvalidPasswordException {
+	public ResponseEntity<?> createUser(@Valid @RequestBody SignupRequest u) throws Exception {
 		logger.info("Inside User Creation");
 
 		if (!PasswordValidator.isValid(u.getPassword()))
@@ -62,47 +78,50 @@ public class PublicController {
 							+ "Password must contain a length of at least 8 characters and a maximum of 20 characters.",
 					u.getPassword(), 0);
 
-		User userExists = userService.findUserByUsername(u.getUsername());
-		User emailExists = userService.findUserByEmail(u.getUsername());
-
-		if (userExists != null) {
-			return new ResponseEntity<>("There is already a user registered with the username provided", HttpStatus.OK);
-		} else if (emailExists != null) {
-			return new ResponseEntity<>("There is already a user registered with the email provided", HttpStatus.OK);
+		if (userService.findUserByUsername(u.getUsername()) != null) {
+			throw new Exception("User already Exists");
+		} else if (userService.findUserByEmail(u.getUsername()) != null) {
+			throw new Exception("Email already exists");
 
 		} else
 
 		{
-			userService.saveUser(u);
-			return new ResponseEntity<>("User successfully saved in the database", HttpStatus.OK);
+			User user = new User();
+			user.setUsername(u.getUsername());
+			user.setPassword(encoder.encode(u.getPassword()));
+			user.setEmail(u.getEmail());
+			user.setRole(u.getRole());
+			userService.saveUser(user);
+			return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
 		}
 	}
 
 	// Login
+
 	@PostMapping("/login")
-	@ResponseBody
-	public ResponseEntity<JWTResponseDTO> loginUser(@RequestBody User u) throws InvalidCredentialsException {
+	public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest u) throws InvalidCredentialsException {
 
 		logger.info("Inside User Login");
 
-		try {
+		Authentication authentication = authenticationManager
+				.authenticate(new UsernamePasswordAuthenticationToken(u.getUsername(), u.getPassword()));
 
-			authenticationManager
-					.authenticate(new UsernamePasswordAuthenticationToken(u.getUsername(), u.getPassword()));
+		SecurityContextHolder.getContext().setAuthentication(authentication);
 
-		} catch (Exception e) {
-			throw new InvalidCredentialsException("Invalid credentials");
-		}
+		MyUserDetails userDetails = (MyUserDetails) authentication.getPrincipal();
+		ResponseCookie jwtCookie = jwtUtil.generateJwtCookie(userDetails);
 
-		UserDetails userDetails = userServiceImpl.loadUserByUsername(u.getUsername());
+		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString()).body(new UserInfoResponse(
+				userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), userDetails.getRole()));
+	}
 
-		String token = jwtUtil.generateToken(userDetails);
+	// LogOut
 
-		boolean isValid = token != null ? true : false;
-
-		JWTResponseDTO jwtResponseDTO = new JWTResponseDTO(token, u.getUsername(), isValid);
-
-		return new ResponseEntity<JWTResponseDTO>(jwtResponseDTO, HttpStatus.OK);
+	@PostMapping("/logout")
+	public ResponseEntity<?> logoutUser() {
+		ResponseCookie cookie = jwtUtil.getCleanJwtCookie();
+		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
+				.body(new MessageResponse("You've been signed out!"));
 	}
 
 }

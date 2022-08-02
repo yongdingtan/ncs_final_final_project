@@ -1,0 +1,120 @@
+<div class="container">
+  <div class="col-md-6">
+    <h2 class="text-center">{{ QuestionFormLabel }}</h2>
+
+    <form [formGroup]="addForm">
+      <div class="form-group">
+        <label for="questionString">Question:</label>
+        <input formControlName="questionString" placeholder="Question String" name="questionString" class="form-control"
+          id="questionString" />
+      </div>
+
+      <span class="help-block" *ngIf="
+            addForm.get('questionString')?.hasError('required') &&
+            addForm.get('questionString')?.touched
+          ">
+        <p style="color: red;">Question is required
+      </span>
+
+      <div class="form-group">
+        <label for="questionCategory">Category:</label>
+        <input formControlName="questionCategory" placeholder="Category" name="questionCategory" class="form-control"
+          id="questionCategory" />
+      </div>
+
+      <span class="help-block" *ngIf="
+            addForm.get('questionCategory')?.hasError('required') &&
+            addForm.get('questionCategory')?.touched
+          ">
+        <p style="color: red;">Category is required
+      </span>
+
+      <div class="form-group">
+        <label for="questionMarks">Marks:</label>
+        <input formControlName="questionMarks" placeholder="1-3" name="questionMarks" class="form-control"
+          id="questionMarks" />
+      </div>
+
+      <span class="help-block" *ngIf="
+          addForm.get('questionMarks')?.hasError('required') &&
+          addForm.get('questionMarks')?.touched
+        ">
+        <p style="color: red;">Marks is required
+      </span>
+
+
+
+      <div class="form-group">
+        <label for="questionOptionOne">Option one:</label>
+        <input formControlName="questionOptionOne" placeholder="Option one" name="questionOptionOne"
+          class="form-control" id="questionOptionOne" />
+      </div>
+
+      <span class="help-block" *ngIf="
+          addForm.get('questionOptionOne')?.hasError('required') &&
+          addForm.get('questionOptionOne')?.touched
+        ">
+        <p style="color: red;">Option one is required
+      </span>
+
+      <div class="form-group">
+        <label for="questionOptionTwo">Option two:</label>
+        <input formControlName="questionOptionTwo" placeholder="Option two" name="questionOptionTwo"
+          class="form-control" id="questionOptionTwo" />
+      </div>
+
+      <span class="help-block" *ngIf="
+        addForm.get('questionOptionTwo')?.hasError('required') &&
+        addForm.get('questionOptionTwo')?.touched
+      ">
+        <p style="color: red;">Option two is required
+      </span>
+
+      <div class="form-group">
+        <label for="questionOptionThree">Option three:</label>
+        <input formControlName="questionOptionThree" placeholder="Option three" name="questionOptionThree"
+          class="form-control" id="questionOptionThree" />
+      </div>
+
+      <span class="help-block" *ngIf="
+        addForm.get('option3')?.hasError('required') &&
+        addForm.get('option3')?.touched
+      ">
+        <p style="color: red;">Option three is required
+      </span>
+
+      <div class="form-group">
+        <label for="questionOptionFour">Option four:</label>
+        <input formControlName="questionOptionFour" placeholder="Option four" name="questionOptionFour"
+          class="form-control" id="questionOptionFour" />
+      </div>
+
+      <span class="help-block" *ngIf="
+        addForm.get('questionOptionFour')?.hasError('required') &&
+        addForm.get('questionOptionFour')?.touched
+      ">
+        <p style="color: red;">Option four is required
+      </span>
+
+      <div class="form-group">
+        <label for="correctAnswer">Correct Answer:</label>
+        <input formControlName="correctAnswer" placeholder="Correct Answer" name="correctAnswer" class="form-control"
+          id="correctAnswer" />
+      </div>
+
+      <span class="help-block" *ngIf="
+        addForm.get('correctAnswer')?.hasError('required') &&
+        addForm.get('correctAnswer')?.touched
+      ">
+        <p style="color: red;">A correct answer is required
+      </span>
+
+      <br />
+      <button class="btn btn-success" [disabled]="addForm.invalid" (click)="onSubmit()">
+        Create
+      </button>
+
+
+    </form>
+  </div>
+</div>
