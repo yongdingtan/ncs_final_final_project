@@ -18,4 +18,6 @@ public interface CustomQuestionRepository {
 
 	public List<Question> getAllQuestionsByLevel(int level);
 
+	public List<String> getAllQuestionCategory();
+
 }

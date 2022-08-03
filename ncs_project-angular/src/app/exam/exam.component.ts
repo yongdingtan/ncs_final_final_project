@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatPseudoCheckbox } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { map, values } from 'lodash';
+import { AdminService } from '../admin/admin.service';
 import { QuestionStudent } from '../model/question-student';
 import { StudentTestscore } from '../model/student-testscore';
 import { StudentService } from '../student/student.service';
@@ -16,6 +17,7 @@ import { QuestionService } from './question.service';
 export class ExamComponent implements OnInit {
 
   currentUser: any;
+  allCategories: string[] = [];
 
   question: QuestionStudent = new QuestionStudent;
   questions: QuestionStudent[] = [];
@@ -23,25 +25,30 @@ export class ExamComponent implements OnInit {
   categories: any = ['All Categories', 'mySQL', 'Maths', 'Java', 'Science', 'Geography'];
   Level: any = ['All levels', 'Basic', 'Intermediate', 'Advanced'];
 
-  selected:string="";
-  i:number=1;
+  selected: string = "";
+  i: number = 0;
   totalScore: number = 0;
   isQuizTitleShown: boolean = true;
   isExamCardShown: boolean = false;
   isScoreShown: boolean = false;
-  studentTestScore:any=StudentTestscore;
-  studentsAboveYou:number = 0;
-  studentsBeneathYou:number = 0;
+  studentTestScore: any = StudentTestscore;
+  studentsAboveYou: number = 0;
+  studentsBeneathYou: number = 0;
+  category:string='';
 
-  constructor(private storageService: StorageService, private studentService: StudentService, private questionService: QuestionService, private router: Router) { }
+  constructor(private adminService: AdminService, private storageService: StorageService, private studentService: StudentService, private questionService: QuestionService, private router: Router) { }
 
   ngOnInit(): void {
+    this.adminService.getAllQuestionCategory().subscribe((response: string[]) => {
+      this.allCategories = response;
+    })
   }
 
-  private getExamQuestions(category: string, level: string) {
+  getExamQuestions(category: string, level: string) {
     this.questionService.getExamQuestionsBasedOnCategoryAndLevel(category, level).subscribe((questions: QuestionStudent[]) => {
       this.questions = questions;
     })
+    this.category=category;
   }
 
   startQuiz() {
@@ -60,18 +67,17 @@ export class ExamComponent implements OnInit {
         map.set(this.questions[i].questionNumber, this.questions[i]["questionSelected"]!);
       }
     }
-    const convMap:any = {};
-    map.forEach((values:string,key:number)=> convMap[key]=values);
+    const convMap: any = {};
+    map.forEach((values: string, key: number) => convMap[key] = values);
     this.isExamCardShown = false;
     this.isScoreShown = true;
     this.currentUser = this.storageService.getUser();
 
-    this.studentService.answerExamQuestions(this.currentUser.username, convMap).subscribe((response: any)=>
-    {
+    this.studentService.answerExamQuestions(this.currentUser.username, convMap).subscribe((response: any) => {
 
-      this.totalScore=response.marks;
-      this.studentsAboveYou=response.studentsAboveYou;
-      this.studentsBeneathYou=response.studentsBeneathYou;
+      this.totalScore = response.marks;
+      this.studentsAboveYou = response.studentsAboveYou;
+      this.studentsBeneathYou = response.studentsBeneathYou;
     });
   }
 

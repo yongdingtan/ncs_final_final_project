@@ -118,4 +118,13 @@ public class CustomQuestionRepositoryImpl implements CustomQuestionRepository {
 		return response;
 	}
 
+	@Override
+	public List<String> getAllQuestionCategory() {
+		String query = "select DISTINCT(q.questionCategory) from Question q";
+		Query q = springDataJPA.createQuery(query, String.class);
+		List<String> response = q.getResultList();
+
+		return response;
+	}
+
 }

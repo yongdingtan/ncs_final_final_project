@@ -8,12 +8,7 @@
             <form name = "category" id = "category">
               Category: <select name="subject" id="subject">
                 <option value="" selected="selected">Select Category</option>
-                <option value="Maths" >Maths</option>
-                <option value="Science" >Science</option>
-                <option value="Java" >Java</option>
-                <option value="PHP" >PHP</option>
-                <option value="Geography" >Geography</option>
-                <option value="mySQL" >mySQL</option>
+                <option *ngFor="let category of allCategories" value="{{category}}">{{category}}</option>
               </select>
               <br><br>
               Level: <select name="level" id="level">
@@ -36,10 +31,10 @@
         <div class="card-body">
         <form #questionTest="ngForm" novalidate>
         <br>
-        <h5>{{questions[0].questionCategory}}</h5>
+        <h5>{{category}}</h5>
         <br>
         <div *ngFor="let question of questions">
-            <div><b>Question :{{i}} <br>{{question.questionString}}</b></div>
+            <div><b>Question :{{i==i+1}} <br>{{question.questionString}}</b></div>
             
           <div class="form-group row">
             <div class="form-check form-check-inline mr-1">

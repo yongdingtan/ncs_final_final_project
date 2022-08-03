@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AdminService } from '../admin/admin.service';
 import { QuestionService } from '../exam/question.service';
 import { Question } from '../model/question';
 
@@ -13,72 +14,76 @@ export class AdminQuestionComponent implements OnInit {
 
   editForm: FormGroup = this.formBuilder.group({})
 
-  questions:Question[]=[];
-  Categories:any=['All Categories','mySQL','Maths', 'Java','Science','Geography'];
-  marks:any=['All marks','1','2','3'];
-  apiResponse:any = [];
-  allQuestions:any=[];
+  questions: Question[] = [];
+  Categories: any = ['All Categories', 'mySQL', 'Maths', 'Java', 'Science', 'Geography'];
+  marks: any = ['All marks', '1', '2', '3'];
+  apiResponse: any = [];
+  allQuestions: any = [];
+  allCategories:string[] = [];
 
   //Pagination parameters
-  
-  i:number = 1;
+
+  i: number = 1;
   p: number = 1;
   count: number = 20;
   questionNumber: any;
   clickedIndex: number | undefined;
 
 
-  constructor(
-    private formBuilder: FormBuilder,private questionService:QuestionService, private router:Router) { }
+  constructor(private adminService: AdminService,
+    private formBuilder: FormBuilder, private questionService: QuestionService, private router: Router) { }
 
   ngOnInit(): void {
-    this.questionService.getAllQuestions().subscribe((response:any)=>
-    {
-      this.apiResponse=response;
-      this.allQuestions=response;
+    this.getExamCategory();
+    this.questionService.getAllQuestions().subscribe((response: any) => {
+      this.apiResponse = response;
+      this.allQuestions = response;
     })
 
     this.editForm = this.formBuilder.group({
 
-      questionString:['',[Validators.required]],
-      questionCategory:['',[Validators.required]],
-      questionMarks:['',[Validators.required]],
-      questionOptionOne:['',[Validators.required]],
-      questionOptionTwo:['',[Validators.required]],
-      questionOptionThree:['',[Validators.required]],
-      questionOptionFour:['',[Validators.required]],
-      correctAnswer:['',[Validators.required]],
+      questionString: ['', [Validators.required]],
+      questionCategory: ['', [Validators.required]],
+      questionMarks: ['', [Validators.required]],
+      questionOptionOne: ['', [Validators.required]],
+      questionOptionTwo: ['', [Validators.required]],
+      questionOptionThree: ['', [Validators.required]],
+      questionOptionFour: ['', [Validators.required]],
+      correctAnswer: ['', [Validators.required]],
     });
 
   }
 
-  moveToAddQuestion(){
-    this.router.navigate(["/admin/add-question"]);
- }
-
-  updateQuestion(questionNumber: number)
-  {
-    this.questionService.updateQuestion(questionNumber,this.editForm?.value).subscribe();
+  getExamCategory() {
+    this.adminService.getAllQuestionCategory().subscribe((response: string[]) => {
+      this.allCategories = response;
+    })
   }
 
-  deleteQuestion(questionNumber:number):void{
+  moveToAddQuestion() {
+    this.router.navigate(["/admin/add-question"]);
+  }
+
+  updateQuestion(questionNumber: number) {
+    this.questionService.updateQuestion(questionNumber, this.editForm?.value).subscribe();
+  }
+
+  deleteQuestion(questionNumber: number): void {
     this.questionService.deleteQuestion(questionNumber).subscribe();
   }
 
-  openEdit(question:Question, pIndex:number)
-  {
+  openEdit(question: Question, pIndex: number) {
     this.clickedIndex = pIndex;
   }
 
-  applyFilter()
-  {
-    
+  applyFilter() {
+
     let category = (<HTMLInputElement>document.getElementById("category")).value;
     let level = (<HTMLInputElement>document.getElementById("level")).value;
-    this.questionService.getQuestionsBasedOnCategoryAndLevel(category, level).subscribe((questions: Question[])=>{
+    this.questionService.getQuestionsBasedOnCategoryAndLevel(category, level).subscribe((questions: Question[]) => {
       this.apiResponse = questions;
     })
-  
+
   }
 
 }

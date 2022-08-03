@@ -1,1 +1,48 @@
-<p>admin-filter works!</p>
+<div class="container">
+    <div class="search-container">
+        <h2>Student Details</h2>
+        <br>
+        <div>
+            <h3>Filter</h3>
+            <br>
+            <form name = "form" id = "form">
+              Category: <select name="category" id="category">
+                <option value="All Category">All Category</option>
+                <option *ngFor="let category of allCategories" value="{{category}}">{{category}}</option>
+              </select>
+              <br><br>
+              Level: <select name="level" id="level">
+                <option value = "All levels">All levels</option>
+                <option value = "Basic">Basic</option>
+                <option value = "Intermediate">Intermediate</option>
+                <option value = "Advanced">Advanced</option>
+              </select>
+              <br><br>
+            <div>
+              <button class="btn btn-block btn-outline-primary cursor-restriction" style="margin-top: 24px;" 
+              (click)="applyFilter()">
+                Filter </button>
+            </div>
+            </form>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Email</th>
+                        <th>Average Test Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let testScore of apiResponse">
+                        <td>{{ testScore.userId }}</td>
+                        <td>{{ testScore.username}}</td>
+                        <td>{{ testScore.role }}</td>
+                        <td>{{ testScore.email }}</td>
+                        <td>{{ testScore.averageScore }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>

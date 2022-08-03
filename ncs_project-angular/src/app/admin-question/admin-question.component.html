@@ -7,12 +7,7 @@
             <form name = "form" id = "form">
               Category: <select name="category" id="category">
                 <option value="All Category">All Category</option>
-                <option value="Maths" >Maths</option>
-                <option value="Science" >Science</option>
-                <option value="Java" >Java</option>
-                <option value="PHP" >PHP</option>
-                <option value="Geography" >Geography</option>
-                <option value="mySQL" >mySQL</option>
+                <option *ngFor="let category of allCategories" value="{{category}}">{{category}}</option>
               </select>
               <br><br>
               Level: <select name="level" id="level">

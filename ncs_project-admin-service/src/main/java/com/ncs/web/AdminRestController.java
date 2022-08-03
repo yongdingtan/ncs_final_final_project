@@ -373,7 +373,7 @@ public class AdminRestController {
 		double average = 0;
 		List<User> allStudents = userService.getAllStudents();
 		List<StudentAverageTestScoreResponseDTO> responseDTO = new ArrayList<>();
-		if (category == null && level == null) {
+		if (category.equalsIgnoreCase("All Category") && level.equalsIgnoreCase("All levels")) {
 			for (User user : allStudents) {
 				if (!user.getAllTestScore().isEmpty()) {
 					for (Test_Score ts : user.getAllTestScore()) {
@@ -387,7 +387,7 @@ public class AdminRestController {
 					average = 0;
 				}
 			}
-		} else if (category != null && level == null) {
+		} else if (!category.equalsIgnoreCase("All Category") && level.equalsIgnoreCase("All levels")) {
 			for (User user : allStudents) {
 				if (!user.getAllTestScore().isEmpty()) {
 					for (Test_Score ts : user.getAllTestScore()) {
@@ -396,7 +396,7 @@ public class AdminRestController {
 							count++;
 						}
 					}
-					if (count == 0 || totalMarks == 0) {
+					if (count < 1 || totalMarks < 1) {
 						average = 0;
 					} else {
 						average = totalMarks / count;
@@ -407,7 +407,7 @@ public class AdminRestController {
 					average = 0;
 				}
 			}
-		} else if (category == null && level != null) {
+		} else if (category.equalsIgnoreCase("All Category") && !level.equalsIgnoreCase("All levels")) {
 			for (User user : allStudents) {
 				if (!user.getAllTestScore().isEmpty()) {
 					for (Test_Score ts : user.getAllTestScore()) {
@@ -416,14 +416,18 @@ public class AdminRestController {
 							count++;
 						}
 					}
-					average = totalMarks / count;
+					if (count < 1 || totalMarks < 1) {
+						average = 0;
+					} else {
+						average = totalMarks / count;
+					}
 					responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
 					count = 0;
 					totalMarks = 0;
 					average = 0;
 				}
 			}
-		} else if (category != null && level != null) {
+		} else if (!category.equalsIgnoreCase("All Category") && !level.equalsIgnoreCase("All levels")) {
 			for (User user : allStudents) {
 				if (!user.getAllTestScore().isEmpty()) {
 					for (Test_Score ts : user.getAllTestScore()) {
@@ -432,7 +436,11 @@ public class AdminRestController {
 							count++;
 						}
 					}
-					average = totalMarks / count;
+					if (count < 1 || totalMarks < 1) {
+						average = 0;
+					} else {
+						average = totalMarks / count;
+					}
 					responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
 					count = 0;
 					totalMarks = 0;
@@ -453,7 +461,7 @@ public class AdminRestController {
 	@GetMapping("/student/sort")
 	public ResponseEntity<List<UserTestScoreResponseDTO>> sortStudentsByCategory(
 			@RequestParam(required = true) String category, @RequestParam(required = false) String level) {
-		loggerUser.info("Inside Filter Student GET API Call");
+		loggerUser.info("Inside Sort Student GET API Call");
 
 		List<User> allStudents = userService.getAllStudents();
 		List<UserTestScoreResponseDTO> response = new ArrayList<>();
@@ -534,6 +542,12 @@ public class AdminRestController {
 			return new ResponseEntity<QuestionResponseDTO>(questionResponse, HttpStatus.OK);
 		}
 
+	}
+
+	@GetMapping("/question/getallcategory")
+	public ResponseEntity<List<String>> getAllCategoryInQuestion() {
+		List<String> response = questionRepository.getAllQuestionCategory();
+		return new ResponseEntity<List<String>>(response, HttpStatus.OK);
 	}
 
 	// Get All Questions By Category
