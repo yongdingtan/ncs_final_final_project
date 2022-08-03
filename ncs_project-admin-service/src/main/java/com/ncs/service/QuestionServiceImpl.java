@@ -42,21 +42,21 @@ public class QuestionServiceImpl implements QuestionService {
 
 	@Override
 	public void editQuestion(Question editedQuestion, Question q) {
-		if (editedQuestion.getQuestionString() != null)
+		if (q.getQuestionString() != null)
 			editedQuestion.setQuestionString(q.getQuestionString());
-		if (editedQuestion.getQuestionCategory() != null)
+		if (q.getQuestionCategory() != null)
 			editedQuestion.setQuestionCategory(q.getQuestionCategory());
-		if (editedQuestion.getQuestionMarks() != 0)
+		if (q.getQuestionMarks() != 0)
 			editedQuestion.setQuestionMarks(q.getQuestionMarks());
-		if (editedQuestion.getQuestionOptionOne() != null)
+		if (q.getQuestionOptionOne() != null)
 			editedQuestion.setQuestionOptionOne(q.getQuestionOptionOne());
-		if (editedQuestion.getQuestionOptionTwo() != null)
+		if (q.getQuestionOptionTwo() != null)
 			editedQuestion.setQuestionOptionTwo(q.getQuestionOptionTwo());
-		if (editedQuestion.getQuestionOptionThree() != null)
+		if (q.getQuestionOptionThree() != null)
 			editedQuestion.setQuestionOptionThree(q.getQuestionOptionThree());
-		if (editedQuestion.getQuestionOptionFour() != null)
+		if (q.getQuestionOptionFour() != null)
 			editedQuestion.setQuestionOptionFour(q.getQuestionOptionFour());
-		if (editedQuestion.getCorrectAnswer() != null)
+		if (q.getCorrectAnswer() != null)
 			editedQuestion.setCorrectAnswer(q.getCorrectAnswer());
 		editedQuestion.setDate_updated(new Timestamp(System.currentTimeMillis()));
 		questionRepository.save(editedQuestion);

@@ -14,4 +14,8 @@ public interface CustomQuestionRepository {
 
 	public boolean deleteQuestion(int questionId);
 
+	public List<Question> getAllQuestionsByCategoryAndLevel(String category, int level);
+
+	public List<Question> getAllQuestionsByLevel(int level);
+
 }

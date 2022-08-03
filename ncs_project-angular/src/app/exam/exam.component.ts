@@ -23,7 +23,8 @@ export class ExamComponent implements OnInit {
   categories: any = ['All Categories', 'mySQL', 'Maths', 'Java', 'Science', 'Geography'];
   Level: any = ['All levels', 'Basic', 'Intermediate', 'Advanced'];
 
-
+  selected:string="";
+  i:number=1;
   totalScore: number = 0;
   isQuizTitleShown: boolean = true;
   isExamCardShown: boolean = false;
@@ -37,15 +38,16 @@ export class ExamComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  private getExamQuestions() {
-    this.questionService.getExamQuestionsBasedOnCategoryAndLevel().subscribe((questions: QuestionStudent[]) => {
+  private getExamQuestions(category: string, level: string) {
+    this.questionService.getExamQuestionsBasedOnCategoryAndLevel(category, level).subscribe((questions: QuestionStudent[]) => {
       this.questions = questions;
     })
   }
 
   startQuiz() {
-
-    this.getExamQuestions();
+    let category = (<HTMLInputElement>document.getElementById("subject")).value;
+    let level = (<HTMLInputElement>document.getElementById("level")).value;
+    this.getExamQuestions(category, level);
     this.isExamCardShown = true;
     this.isQuizTitleShown = false;
 

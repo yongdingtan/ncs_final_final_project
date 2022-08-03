@@ -212,6 +212,108 @@ public class AdminRestController {
 
 	}
 
+	@GetMapping("/testscore/read")
+	public ResponseEntity<List<TestScoreResponseDTO>> getAllTestScoreBasedOnParams(
+			@RequestParam(required = false) String studentid, @RequestParam(required = false) String category,
+			@RequestParam(required = false) String level) {
+		if (!studentid.equalsIgnoreCase("All Students")) {
+			int id = Integer.parseInt(studentid);
+			User user = userService.findUserById(id);
+			Set<Test_Score> rawTestScores = user.getAllTestScore();
+			List<TestScoreResponseDTO> response = new ArrayList<>();
+			if (!category.equalsIgnoreCase("All Categories") && !level.equalsIgnoreCase("All levels")) {
+				for (Test_Score test_Score : rawTestScores) {
+					if (test_Score.getCategory().equalsIgnoreCase(category)
+							&& test_Score.getLevel().equalsIgnoreCase(level)) {
+						response.add(dtoTestScore.convertToResponseWithUserId(test_Score, id));
+					}
+				}
+				return new ResponseEntity<List<TestScoreResponseDTO>>(response, HttpStatus.OK);
+
+			} else if (category.equalsIgnoreCase("All Categories") && !level.equalsIgnoreCase("All levels")) {
+				for (Test_Score test_Score : rawTestScores) {
+					if (test_Score.getLevel().equalsIgnoreCase(level)) {
+						response.add(dtoTestScore.convertToResponseWithUserId(test_Score, id));
+					}
+				}
+				return new ResponseEntity<List<TestScoreResponseDTO>>(response, HttpStatus.OK);
+
+			} else if (!category.equalsIgnoreCase("All Categories") && level.equalsIgnoreCase("All levels")) {
+				for (Test_Score test_Score : rawTestScores) {
+					if (test_Score.getCategory().equalsIgnoreCase(category)) {
+						response.add(dtoTestScore.convertToResponseWithUserId(test_Score, id));
+					}
+				}
+				return new ResponseEntity<List<TestScoreResponseDTO>>(response, HttpStatus.OK);
+
+			} else {
+				for (Test_Score test_Score : rawTestScores) {
+					{
+						response.add(dtoTestScore.convertToResponseWithUserId(test_Score, id));
+					}
+				}
+				return new ResponseEntity<List<TestScoreResponseDTO>>(response, HttpStatus.OK);
+
+			}
+		} else {
+			List<User> allStudents = userService.getAllStudents();
+			if (!category.equalsIgnoreCase("All Categories") && !level.equalsIgnoreCase("All levels")) {
+				List<TestScoreResponseDTO> response = new ArrayList<>();
+				for (User user : allStudents) {
+					for (Test_Score test_Score : user.getAllTestScore()) {
+						if (test_Score.getCategory().equalsIgnoreCase(category)
+								&& test_Score.getLevel().equalsIgnoreCase(level)) {
+							response.add(dtoTestScore.convertToResponseWithUserId(test_Score, user.getUserId()));
+						}
+					}
+
+				}
+
+				return new ResponseEntity<List<TestScoreResponseDTO>>(response, HttpStatus.OK);
+
+			} else if (category.equalsIgnoreCase("All Categories") && !level.equalsIgnoreCase("All levels")) {
+				List<TestScoreResponseDTO> response = new ArrayList<>();
+				for (User user : allStudents) {
+					for (Test_Score test_Score : user.getAllTestScore()) {
+						if (test_Score.getLevel().equalsIgnoreCase(level)) {
+							response.add(dtoTestScore.convertToResponseWithUserId(test_Score, user.getUserId()));
+						}
+					}
+
+				}
+
+				return new ResponseEntity<List<TestScoreResponseDTO>>(response, HttpStatus.OK);
+
+			} else if (!category.equalsIgnoreCase("All Categories") && level.equalsIgnoreCase("All levels")) {
+				List<TestScoreResponseDTO> response = new ArrayList<>();
+				for (User user : allStudents) {
+					for (Test_Score test_Score : user.getAllTestScore()) {
+						if (test_Score.getCategory().equalsIgnoreCase(category)) {
+							response.add(dtoTestScore.convertToResponseWithUserId(test_Score, user.getUserId()));
+						}
+					}
+
+				}
+
+				return new ResponseEntity<List<TestScoreResponseDTO>>(response, HttpStatus.OK);
+
+			} else {
+				List<TestScoreResponseDTO> response = new ArrayList<>();
+				for (User user : allStudents) {
+					for (Test_Score test_Score : user.getAllTestScore()) {
+						response.add(dtoTestScore.convertToResponseWithUserId(test_Score, user.getUserId()));
+
+					}
+
+				}
+
+				return new ResponseEntity<List<TestScoreResponseDTO>>(response, HttpStatus.OK);
+
+			}
+
+		}
+	}
+
 	// Edit Test Score By ID
 	@PutMapping("/testscore/edit/{id}")
 	@ResponseBody
@@ -246,6 +348,17 @@ public class AdminRestController {
 				return new ResponseEntity<>("Test Score deletion failed", HttpStatus.BAD_REQUEST);
 		}
 
+	}
+
+	// Get all student IDs
+	@GetMapping("/student/getallstudentid")
+	public ResponseEntity<List<Integer>> getAllStudentID() {
+		List<Integer> response = new ArrayList<>();
+		List<User> allStudents = userService.getAllStudents();
+		for (User user : allStudents) {
+			response.add(user.getUserId());
+		}
+		return new ResponseEntity<List<Integer>>(response, HttpStatus.OK);
 	}
 
 	// Filters students by their average test score and returns a list from highest
@@ -283,7 +396,11 @@ public class AdminRestController {
 							count++;
 						}
 					}
-					average = totalMarks / count;
+					if (count == 0 || totalMarks == 0) {
+						average = 0;
+					} else {
+						average = totalMarks / count;
+					}
 					responseDTO.add(dtoUser.convertToAverageTestScoreResponse(user, (int) average));
 					count = 0;
 					totalMarks = 0;
@@ -422,14 +539,43 @@ public class AdminRestController {
 	// Get All Questions By Category
 	@GetMapping("/question/category")
 	@ResponseBody
-	public ResponseEntity<List<QuestionResponseDTO>> getAllQuestionByCategory(@RequestParam String category)
-			throws Exception {
+	public ResponseEntity<List<QuestionResponseDTO>> getAllQuestionByCategory(@RequestParam String category,
+			@RequestParam String level) throws Exception {
 		loggerQuestion.info("Inside Get Category API Call");
+		int marks = 0;
+		if (level.equalsIgnoreCase("Basic")) {
 
-		List<Question> listOfQuestions = questionService.getAllQuestionByCategory(category);
+			marks = 1;
+		} else if (level.equalsIgnoreCase("Intermediate"))
+			marks = 2;
+		else
+			marks = 3;
+
+		List<Question> listOfQuestions = questionRepository.getAllQuestions();
 		if (listOfQuestions.isEmpty())
-			throw new ResourceNotFoundException("Questions in " + category + " not found ", "Category", 0);
-		else {
+			throw new ResourceNotFoundException("Questions not found ", "Category", 0);
+		else if (!category.equalsIgnoreCase("All Category") && !level.equalsIgnoreCase("All levels")) {
+			List<QuestionResponseDTO> responseDTO = new ArrayList<>();
+			listOfQuestions = questionRepository.getAllQuestionsByCategoryAndLevel(category, marks);
+			for (Question question : listOfQuestions) {
+				responseDTO.add(dtoQuestion.convertToResponse(question));
+			}
+			return new ResponseEntity<List<QuestionResponseDTO>>(responseDTO, HttpStatus.OK);
+		} else if (!category.equalsIgnoreCase("All Category") && level.equalsIgnoreCase("All levels")) {
+			List<QuestionResponseDTO> responseDTO = new ArrayList<>();
+			listOfQuestions = questionService.getAllQuestionByCategory(category);
+			for (Question question : listOfQuestions) {
+				responseDTO.add(dtoQuestion.convertToResponse(question));
+			}
+			return new ResponseEntity<List<QuestionResponseDTO>>(responseDTO, HttpStatus.OK);
+		} else if (category.equalsIgnoreCase("All Category") && !level.equalsIgnoreCase("All levels")) {
+			listOfQuestions = questionRepository.getAllQuestionsByLevel(marks);
+			List<QuestionResponseDTO> responseDTO = new ArrayList<>();
+			for (Question question : listOfQuestions) {
+				responseDTO.add(dtoQuestion.convertToResponse(question));
+			}
+			return new ResponseEntity<List<QuestionResponseDTO>>(responseDTO, HttpStatus.OK);
+		} else {
 			List<QuestionResponseDTO> responseDTO = new ArrayList<>();
 			for (Question question : listOfQuestions) {
 				responseDTO.add(dtoQuestion.convertToResponse(question));
@@ -444,7 +590,6 @@ public class AdminRestController {
 	public ResponseEntity<?> editQuestion(@PathVariable(required = true) int id, @RequestBody Question q)
 			throws Exception {
 		loggerQuestion.info("Inside Edit Question API Call");
-
 		Question questionExists = questionService.readQuestion(id);
 		if (questionExists == null)
 			throw new ResourceNotFoundException("Question " + id + " not found", "Id", id);

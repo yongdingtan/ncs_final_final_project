@@ -13,7 +13,7 @@ export class AdminQuestionComponent implements OnInit {
 
   editForm: FormGroup = this.formBuilder.group({})
 
-  questions:any=[];
+  questions:Question[]=[];
   Categories:any=['All Categories','mySQL','Maths', 'Java','Science','Geography'];
   marks:any=['All marks','1','2','3'];
   apiResponse:any = [];
@@ -21,6 +21,7 @@ export class AdminQuestionComponent implements OnInit {
 
   //Pagination parameters
   
+  i:number = 1;
   p: number = 1;
   count: number = 20;
   questionNumber: any;
@@ -38,7 +39,7 @@ export class AdminQuestionComponent implements OnInit {
     })
 
     this.editForm = this.formBuilder.group({
-      questionNumber:['',[Validators.required]],
+
       questionString:['',[Validators.required]],
       questionCategory:['',[Validators.required]],
       questionMarks:['',[Validators.required]],
@@ -55,9 +56,9 @@ export class AdminQuestionComponent implements OnInit {
     this.router.navigate(["/admin/add-question"]);
  }
 
-  updateQuestion()
+  updateQuestion(questionNumber: number)
   {
-    this.questionService.updateQuestion(this.editForm?.value.questionNumber,this.editForm?.value).subscribe();
+    this.questionService.updateQuestion(questionNumber,this.editForm?.value).subscribe();
   }
 
   deleteQuestion(questionNumber:number):void{
@@ -69,14 +70,15 @@ export class AdminQuestionComponent implements OnInit {
     this.clickedIndex = pIndex;
   }
 
-  applyFilter(event:any)
+  applyFilter()
   {
-    if(event.target.value === "All Categories" || event.target.value === "All marks")
-    {
-      this.apiResponse = this.allQuestions;
-    }else{
-      this.apiResponse = this.allQuestions.filter((question:Question) => question.questionCategory===event.target.value || Number(question.questionMarks)===Number(event.target.value));
-    }
+    
+    let category = (<HTMLInputElement>document.getElementById("category")).value;
+    let level = (<HTMLInputElement>document.getElementById("level")).value;
+    this.questionService.getQuestionsBasedOnCategoryAndLevel(category, level).subscribe((questions: Question[])=>{
+      this.apiResponse = questions;
+    })
+  
   }
 
 }

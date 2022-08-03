@@ -16,7 +16,6 @@ import { ExamComponent } from './exam/exam.component';
 import { StudentResultComponent } from './student-result/student-result.component';
 import { AdminResultComponent } from './admin-result/admin-result.component';
 import { AdminQuestionComponent } from './admin-question/admin-question.component';
-import { AdminUserComponent } from './admin-user/admin-user.component';
 import { MaterialComponentsModule } from './material-components/material-components.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatTableModule } from '@angular/material/table';
@@ -27,6 +26,8 @@ import { MatInputModule } from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
 import { NgxPaginationModule } from 'ngx-pagination';
 import {MatDialogModule} from '@angular/material/dialog';
+import { AdminSortComponent } from './admin-sort/admin-sort.component';
+import { AdminFilterComponent } from './admin-filter/admin-filter.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -41,7 +42,8 @@ import {MatDialogModule} from '@angular/material/dialog';
     StudentResultComponent,
     AdminResultComponent,
     AdminQuestionComponent,
-    AdminUserComponent
+    AdminSortComponent,
+    AdminFilterComponent
   ],
   imports: [
     BrowserModule,

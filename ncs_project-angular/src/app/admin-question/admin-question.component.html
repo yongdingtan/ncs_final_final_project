@@ -4,14 +4,30 @@
         <br>
         <div>
             <h3>Filter</h3>
-            <select (change)="applyFilter($event)">
-                <option [ngValue]="null" disabled>Select Category</option>
-                <option *ngFor="let category of Categories" value="{{category}}">{{category}}</option>
-            </select>
-            <select (change)="applyFilter($event)">
-                <option [ngValue]="null" disabled>Select Category</option>
-                <option *ngFor="let level of marks" value="{{level}}">{{level}}</option>
-            </select>
+            <form name = "form" id = "form">
+              Category: <select name="category" id="category">
+                <option value="All Category">All Category</option>
+                <option value="Maths" >Maths</option>
+                <option value="Science" >Science</option>
+                <option value="Java" >Java</option>
+                <option value="PHP" >PHP</option>
+                <option value="Geography" >Geography</option>
+                <option value="mySQL" >mySQL</option>
+              </select>
+              <br><br>
+              Level: <select name="level" id="level">
+                <option value = "All levels">All levels</option>
+                <option value = "Basic">Basic</option>
+                <option value = "Intermediate">Intermediate</option>
+                <option value = "Advanced">Advanced</option>
+              </select>
+              <br><br>
+            <div>
+              <button class="btn btn-block btn-outline-primary cursor-restriction" style="margin-top: 24px;" 
+              (click)="applyFilter()">
+                Filter </button>
+            </div>
+            </form>
             <button mat-raised-button (click)="moveToAddQuestion()" style="width:180px; float:right;">
                 Add Question
             </button>
@@ -59,11 +75,9 @@
 
                                 <div class="form-group">
                                     <label for="questionNumber">Question Number:</label>
-                                    <!-- <input ng-readonly formControlName="questionNumber" value = 3 name="questionNumber" class="form-control"
-                                      id="questionNumber" /> -->
-                                      <input formControlName="questionNumber" placeholder="Question Number" name="questionNumber" class="form-control"
+                                      <input ng-model="questionNumber" [readonly]="true" value = {{question.questionNumber}} name="questionNumber"
                                       id="questionNumber" />
-                                    </div>
+                                </div>
 
                                   <span class="help-block" *ngIf="
                                   editForm.get('questionNumber')?.hasError('required') &&
@@ -180,7 +194,7 @@
                             
                                   <br />
                                 <div class="form-group">
-                                    <button class="btn btn-success" type="submit"  (click)="updateQuestion()">Save</button>
+                                    <button class="btn btn-success" type="submit"  (click)="updateQuestion(question.questionNumber)">Save</button>
                                 </div>
                             </form>
                         </td>

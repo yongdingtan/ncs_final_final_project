@@ -49,12 +49,16 @@ export class QuestionService {
     return this.httpClient.delete(baseUrl+'delete/'+ questionNumber);
   }
 
-  getExamQuestionsBasedOnCategoryAndLevel():
+  getExamQuestionsBasedOnCategoryAndLevel(category:string, level:string):
   Observable<QuestionStudent[]>
   {
-    return this.httpClient.get<QuestionStudent[]>('http://localhost:8089/question/exam/attempt?category=PHP&level=Basic');
+    return this.httpClient.get<QuestionStudent[]>('http://localhost:8089/question/exam/attempt?category='+category+'&level='+level);
   }
 
-  //'http://localhost:8089/question/exam/attempt?category='+category+'&level='+level
+  getQuestionsBasedOnCategoryAndLevel(category:string, level:string):
+  Observable<Question[]>
+  {
+    return this.httpClient.get<Question[]>('http://localhost:8089/admin/question/category?category='+category+'&level='+level);
+  }
 
 }

@@ -5,10 +5,30 @@
       <div class="card" [hidden]="isExamCardShown">
         <div class="card-body">
           <div class="row justify-content-md-center">
-            <div class="col-sm-12 col-lg-3">
-              <button class="btn btn-block btn-outline-primary cursor-restriction" style="margin-top: 24px;" (click)="startQuiz()">
+            <form name = "category" id = "category">
+              Category: <select name="subject" id="subject">
+                <option value="" selected="selected">Select Category</option>
+                <option value="Maths" >Maths</option>
+                <option value="Science" >Science</option>
+                <option value="Java" >Java</option>
+                <option value="PHP" >PHP</option>
+                <option value="Geography" >Geography</option>
+                <option value="mySQL" >mySQL</option>
+              </select>
+              <br><br>
+              Level: <select name="level" id="level">
+                <option value="" selected="selected">Select level</option>
+                <option value = Basic>Basic</option>
+                <option value = Intermediate>Intermediate</option>
+                <option value = Advanced>Advanced</option>
+              </select>
+              <br><br>
+            <div class="relative">
+              <button class="btn btn-block btn-outline-primary cursor-restriction" style="margin-top: 24px;" 
+              (click)="startQuiz()">
                 Start Quiz </button>
             </div>
+            </form>
           </div>
         </div>
       </div>
@@ -18,8 +38,8 @@
         <br>
         <h5>{{questions[0].questionCategory}}</h5>
         <br>
-        <div *ngFor="let question of questions" let i = 0>
-            <div><b>Question :{{i++} <br>{{question.questionString}}</b></div>
+        <div *ngFor="let question of questions">
+            <div><b>Question :{{i}} <br>{{question.questionString}}</b></div>
             
           <div class="form-group row">
             <div class="form-check form-check-inline mr-1">

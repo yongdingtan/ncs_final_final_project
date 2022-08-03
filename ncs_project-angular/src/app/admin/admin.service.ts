@@ -49,6 +49,12 @@ export class AdminService {
     return this.httpClient.get<User[]>(baseUrl+'/user/roles/'+role);
   }
 
+  getAllStudentID():
+  Observable<Number[]>
+  {
+    return this.httpClient.get<Number[]>('http://localhost:8089/admin/student/getallstudentid');
+  }
+
   getTestResults():
   Observable<TestScore[]>
   {

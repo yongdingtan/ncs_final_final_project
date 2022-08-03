@@ -36,4 +36,10 @@ export class TestScoreService {
     return this.httpClient.delete(baseUrl+'/delete/'+testId);
   }
 
+  getTestScoresBasedOnCategoryAndLevel(studentid:string, category:string, level:string):
+  Observable<TestScore[]>
+  {
+    return this.httpClient.get<TestScore[]>('http://localhost:8089/admin/testscore/read?studentid='+studentid+'&category='+category+'&level='+level);
+  }
+
 }

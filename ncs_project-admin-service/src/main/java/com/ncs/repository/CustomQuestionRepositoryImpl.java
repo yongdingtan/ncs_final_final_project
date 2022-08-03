@@ -97,4 +97,25 @@ public class CustomQuestionRepositoryImpl implements CustomQuestionRepository {
 		return (x == 1) ? true : false;
 	}
 
+	@Override
+	public List<Question> getAllQuestionsByCategoryAndLevel(String category, int level) {
+		String query = "from Question q where q.questionCategory = :category AND q.questionMarks = :level AND q.is_available = 1";
+		Query q = springDataJPA.createQuery(query, Question.class);
+		q.setParameter("category", category);
+		q.setParameter("level", level);
+		List<Question> response = q.getResultList();
+
+		return response;
+	}
+
+	@Override
+	public List<Question> getAllQuestionsByLevel(int level) {
+		String query = "from Question q where q.questionMarks = :level AND q.is_available = 1";
+		Query q = springDataJPA.createQuery(query, Question.class);
+		q.setParameter("level", level);
+		List<Question> response = q.getResultList();
+
+		return response;
+	}
+
 }

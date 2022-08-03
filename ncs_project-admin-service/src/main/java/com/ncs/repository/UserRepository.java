@@ -25,4 +25,5 @@ public interface UserRepository extends JpaRepository<User, Integer>, CustomUser
 
 	@Query("from User u where u.role = 'student' AND u.is_available = 1")
 	public List<User> getAllStudents();
+
 }

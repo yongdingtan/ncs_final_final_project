@@ -11,6 +11,8 @@ import { StudentResultComponent } from './student-result/student-result.componen
 import { AdminResultComponent } from './admin-result/admin-result.component';
 import { AdminQuestionComponent } from './admin-question/admin-question.component';
 import { AddComponent } from './question/add/add.component';
+import { AdminSortComponent } from './admin-sort/admin-sort.component';
+import { AdminFilterComponent } from './admin-filter/admin-filter.component';
 
 const routes: Routes = [
   { path: 'home', component: HomeComponent },
@@ -24,6 +26,8 @@ const routes: Routes = [
   { path: 'admin/admin-result', component:AdminResultComponent},
   { path: 'admin/admin-question', component:AdminQuestionComponent},
   { path: 'admin/add-question', component:AddComponent},
+  { path: 'admin/admin-sort', component:AdminSortComponent},
+  { path: 'admin/admin-filter', component:AdminFilterComponent},
   { path: '', redirectTo: 'home', pathMatch: 'full' }
 ];
 
