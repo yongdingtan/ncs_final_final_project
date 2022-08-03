@@ -30,7 +30,6 @@ import com.ncs.model.MyUserDetails;
 import com.ncs.model.SignupRequest;
 import com.ncs.model.User;
 import com.ncs.service.UserService;
-import com.ncs.service.UserServiceImpl;
 import com.ncs.util.JWTUtil;
 
 @Validated
@@ -41,8 +40,6 @@ public class PublicController {
 
 	@Autowired
 	private AuthenticationManager authenticationManager;
-	@Autowired
-	private UserServiceImpl userServiceImpl;
 	UserService userService;
 	@Autowired
 	JWTUtil jwtUtil;
